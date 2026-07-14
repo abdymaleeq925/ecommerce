@@ -2,11 +2,15 @@
   "name": "ecommerce",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "eslint"
+    "dev": "NODE_OPTIONS=--no-deprecation next dev",
+    "build": "NODE_OPTIONS=--no-deprecation next build",
+    "start": "NODE_OPTIONS=--no-deprecation next start",
+    "lint": "eslint",
+    "generate:types": "NODE_OPTIONS=--no-deprecation payload generate:types",
+    "db:fresh": "NODE_OPTIONS=--no-deprecation payload migrate:fresh",
+    "db:seed": "NODE_OPTIONS=--no-deprecation tsx --env-file=.env src/seed.ts"
   },
   "dependencies": {
     "@payloadcms/db-mongodb": "^3.85.2",
