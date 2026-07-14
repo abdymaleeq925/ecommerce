@@ -77,8 +77,8 @@ export interface Config {
   };
   collectionsJoins: {
     categories: {
-      subcategories: 'categories'
-    }
+      subcategories: 'categories';
+    };
   };
   collectionsSelect: {
     users: UsersSelect<false> | UsersSelect<true>;
@@ -189,8 +189,6 @@ export interface Category {
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv".
  */
-
-
 export interface PayloadKv {
   id: string;
   key: string;
