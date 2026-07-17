@@ -132,39 +132,105 @@ const categories = [
 ];
 
 const seed = async () => {
-    const payload = await getPayload({config});
+  const payload = await getPayload({ config });
 
-    for(const category of categories) {
-        const parentCategory = await payload.create({
-            collection: "categories",
-            data: {
-                name: category.name,
-                slug: category.slug,
-                color: category.color,
-                parent: null
-            }
-        })
+  for (const category of categories) {
+    const existingParent = await payload.find({
+      collection: "categories",
+      where: {
+        slug: {
+          equals: category.slug,
+        },
+      },
+    });
 
-        for(const subCategory of category.subcategories || []) {
-            await payload.create({
-                collection: "categories",
-                data: {
-                    name: subCategory.name,
-                    slug: subCategory.slug,
-                    parent: parentCategory.id
-                }
-            })
-        }
+    let parentCategory;
+    if (existingParent.docs.length > 0) {
+      parentCategory = await payload.update({
+        collection: "categories",
+        id: existingParent.docs[0].id,
+        data: {
+          name: category.name,
+          color: category.color,
+          parent: null,
+        },
+      });
+    } else {
+      parentCategory = await payload.create({
+        collection: "categories",
+        data: {
+          name: category.name,
+          slug: category.slug,
+          color: category.color,
+          parent: null,
+        },
+      });
     }
-}
+
+    const subcategoryIds: string[] = [];
+
+    // const parentCategory = await payload.create({
+    //     collection: "categories",
+    //     data: {
+    //         name: category.name,
+    //         slug: category.slug,
+    //         color: category.color,
+    //         parent: null
+    //     }
+    // })
+
+    for (const subCategory of category.subcategories || []) {
+      const existingSub = await payload.find({
+        collection: "categories",
+        where: {
+          slug: {
+            equals: subCategory.slug,
+          },
+        },
+      });
+
+      let savedSubcategory;
+
+      if (existingSub.docs.length > 0) {
+        savedSubcategory = await payload.update({
+          collection: "categories",
+          id: existingSub.docs[0].id,
+          data: {
+            name: subCategory.name,
+            parent: parentCategory.id,
+          },
+        });
+      } else {
+        savedSubcategory = await payload.create({
+          collection: "categories",
+          data: {
+            name: subCategory.name,
+            slug: subCategory.slug,
+            parent: parentCategory.id,
+          },
+        });
+      }
+
+      subcategoryIds.push(savedSubcategory.id);
+    }
+
+    if (subcategoryIds.length > 0) {
+      await payload.update({
+        collection: "categories",
+        id: parentCategory.id,
+        data: {
+          subcategories: (subcategoryIds as unknown) as { docs?: string[] }
+        },
+      });
+    }
+  }
+};
 
 try {
   await seed();
-  console.log("Seeding completed successfully")
+  console.log("Seeding completed successfully");
   process.exit(0);
-} catch(error) {
-  console.error("Error during seeding:", error)
-  process.exit(1)
+} catch (error) {
+  console.error("Error during seeding:", error);
+  process.exit(1);
 }
-
-
