@@ -5,13 +5,15 @@ import { ListFilterIcon } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
+import { CategoriesGetManyOutput } from '@/modules/categories/types'
 
 import CategoryDropdown from './category-dropdown'
-import { CustomCategory } from '../types'
 import CategoriesSidebar from './categories-sidebar'
+import { usePathname } from 'next/navigation'
+
 
 interface CategoriesProps {
-  data: CustomCategory[]
+  data: CategoriesGetManyOutput
 }
 
 export const Categories = ({ data }: CategoriesProps) => {
@@ -23,7 +25,11 @@ export const Categories = ({ data }: CategoriesProps) => {
   const [isAnyHovered, setIsAnyHovered] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-  const activeCategory = "all";
+  const pathname = usePathname();
+
+  const pathSegments = pathname.split("/").filter(Boolean);
+
+  const activeCategory = pathSegments[0] || "all";
 
   const activeCategoryIndex = data.findIndex((cat) => cat.slug === activeCategory);
   const isActiveCategoryHidden = activeCategoryIndex >= visibleCount && activeCategoryIndex !== -1;
@@ -55,9 +61,10 @@ export const Categories = ({ data }: CategoriesProps) => {
 
     return () => resizeObserver.disconnect();
   }, [data.length])
+  
   return (
     <div className="relative w-full">
-      <CategoriesSidebar open={isSidebarOpen} onOpenChange={setIsSidebarOpen} data={data} />
+      <CategoriesSidebar open={isSidebarOpen} onOpenChange={setIsSidebarOpen} />
       <div
         ref={measureRef}
         className="absolute opacity-0 pointer-events-none flex"

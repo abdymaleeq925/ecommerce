@@ -1,11 +1,10 @@
 import Link from 'next/link'
 
 import { Category } from '@/payload-types'
-
-import { CustomCategory } from '../types'
+import { CategoriesGetManyOutput } from '@/modules/categories/types'
 
 interface SubcategoryMenuProps {
-  category: CustomCategory,
+  category: CategoriesGetManyOutput[1],
   isOpen: boolean,
   position: { top: number, left: number }
 }
@@ -24,10 +23,10 @@ export const SubcategoryMenu = ({ category, isOpen, position }: SubcategoryMenuP
       style={{ top: position.top, left: position.left }}
     >
       {/* Invisible bridge to maintain hover */}
-      <div className="h-4 w-60" />
+      <div className="h-4 w-60"/>
       <div
         style={{ backgroundColor }}
-        className="w-60 text-black rounded-md overflow-hidden border shadow[4px_4px_0_0_rgba(0,0,0,1) -translate-x-2 -translate-y-2"
+        className="w-60 text-black rounded-md overflow-hidden border shadow-[4px_4px_0_0_rgba(0,0,0,1)] -translate-x-2 -translate-y-2"
       >
         <div className="">
           {
