@@ -8,7 +8,7 @@ export const registerSchema = z.object({
     .min(3, "Username must be at least 3 characters.")
     .max(63, "Username must be less than 63 characters.")
     .regex(
-      /^[a-z0-9][a-z0-9-]*[a-z0-9]$/,
+      /^[a-z0-9][a-z0-9-]*[a-z0-9]$/i,
       "Username can only contain lowercase letters, numbers and hyphens. It must start and end with a letter or number.",
     )
     .refine(

@@ -99,6 +99,8 @@ export const authRouter = createTRPCRouter({
         value: data.token,
         httpOnly: true,
         path: "/",
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
         // Ensure cross-domain cookie sharing
         // sameSite: "none",
         // domain: ""
