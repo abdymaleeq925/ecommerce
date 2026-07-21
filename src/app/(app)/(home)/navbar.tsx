@@ -70,31 +70,37 @@ export const Navbar = () => {
 				}
 			</div>
 			{
-				session.data?.user ? (
-					<div className="hidden lg:flex">
-						<Button
-							asChild
-							className="border-l border-t-0 border-b-0 border-r-0 px-12 h-full rounded-none bg-black text-white hover:text-black hover:bg-pink-400  transition-colors text-lg"
-						>
-							<Link href="/admin">Dashboard</Link>
-						</Button>
+				session.isPending ? (
+					<div className="hidden lg:flex px-12 h-full items-center">
+						<div className="h-6 w-32 bg-neutral-200 animate-pulse rounded-md" />
 					</div>
 				) : (
-					<div className="hidden lg:flex">
-						<Button
-							asChild
-							variant="secondary"
-							className="border-l border-t-0 border-b-0 border-r-0 px-12 h-full rounded-none bg-white hover:bg-pink-400 transition-colors text-lg"
-						>
-							<Link prefetch href="/sign-in">Log In</Link>
-						</Button>
-						<Button
-							asChild
-							className="border-l border-t-0 border-b-0 border-r-0 px-12 h-full rounded-none bg-black text-white hover:text-black hover:bg-pink-400  transition-colors text-lg"
-						>
-							<Link href="/sign-up">Start Selling</Link>
-						</Button>
-					</div>
+					session.data?.user ? (
+						<div className="hidden lg:flex">
+							<Button
+								asChild
+								className="border-l border-t-0 border-b-0 border-r-0 px-12 h-full rounded-none bg-black text-white hover:text-black hover:bg-pink-400  transition-colors text-lg"
+							>
+								<Link href="/admin">Dashboard</Link>
+							</Button>
+						</div>
+					) : (
+						<div className="hidden lg:flex">
+							<Button
+								asChild
+								variant="secondary"
+								className="border-l border-t-0 border-b-0 border-r-0 px-12 h-full rounded-none bg-white hover:bg-pink-400 transition-colors text-lg"
+							>
+								<Link prefetch href="/sign-in">Log In</Link>
+							</Button>
+							<Button
+								asChild
+								className="border-l border-t-0 border-b-0 border-r-0 px-12 h-full rounded-none bg-black text-white hover:text-black hover:bg-pink-400  transition-colors text-lg"
+							>
+								<Link href="/sign-up">Start Selling</Link>
+							</Button>
+						</div>
+					)
 				)
 			}
 

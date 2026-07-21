@@ -15,17 +15,17 @@ interface SearchInputProps {
   disabled?: boolean,
 }
 
-export const SearchInput = ({disabled}: SearchInputProps) => {
+export const SearchInput = ({ disabled }: SearchInputProps) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const trpc = useTRPC();
   const session = useQuery(trpc.auth.session.queryOptions());
 
   return (
     <div className="flex items-center gap-2 w-full">
-      <CategoriesSidebar open={isSidebarOpen} onOpenChange={setIsSidebarOpen}/>
+      <CategoriesSidebar open={isSidebarOpen} onOpenChange={setIsSidebarOpen} />
       <div className="relative w-full">
-        <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-neutral-500"/>
-        <Input className="pl-8" placeholder="Search Products" disabled={disabled}/>
+        <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-neutral-500" />
+        <Input className="pl-8" placeholder="Search Products" disabled={disabled} />
       </div>
       <Button
         variant="elevated"
@@ -33,16 +33,22 @@ export const SearchInput = ({disabled}: SearchInputProps) => {
         onClick={() => setIsSidebarOpen(true)}
         aria-label="Browse categories"
       >
-        <ListFilterIcon/>
+        <ListFilterIcon />
       </Button>
-      { session.data?.user && (
-        <Button asChild variant="elevated"> 
-          <Link href="/library">
-            <BookmarkCheckIcon/>
-            Library
-          </Link>
-        </Button>
-      )}
+      {
+        session.isPending ? (
+          <div className="size-12 shrink-0 bg-neutral-200 animate-pulse rounded-md" />
+        ) : (
+          session.data?.user && (
+            <Button asChild variant="elevated">
+              <Link href="/library">
+                <BookmarkCheckIcon />
+                Library
+              </Link>
+            </Button>
+          )
+        )
+      }
     </div>
   )
 }
