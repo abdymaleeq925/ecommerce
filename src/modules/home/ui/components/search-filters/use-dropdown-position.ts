@@ -10,26 +10,28 @@ export const useDropdownPosition = (
     const dropdownWidth = 240; // Width of dropdown (w-60 = 15rem = 240px)
 
     // Calculate the initial position
-    let left = rect.left + window.scrollX;
-    const top = rect.bottom + window.scrollY;
+    let viewportLeft = rect.left;
 
     // Check if dropdown would go off right edge of the viewport
-    if (left + dropdownWidth > window.innerWidth) {
+    if (viewportLeft + dropdownWidth > window.innerWidth) {
       // Align to the right edge of button instead
-      left = rect.right + window.scrollX - dropdownWidth;
+      viewportLeft = rect.right - dropdownWidth;
 
       // If still off-screen, align to the rightedge of the viewport with some padding
-      if (left < 0) {
-        left = window.innerWidth - dropdownWidth - 16;
+      if (viewportLeft < 0) {
+        viewportLeft = window.innerWidth - dropdownWidth - 16;
       }
     }
 
     // Ensure dropdown doesn't go off left edge
-    if (left < 0) {
-      left = 16;
+    if (viewportLeft < 0) {
+      viewportLeft = 16;
     }
 
-    return { top, left };
+    return {
+      top: rect.bottom + window.scrollY,
+      left: viewportLeft + window.scrollX,
+    };
   };
   return { getDropdownPosition };
 };

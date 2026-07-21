@@ -9,11 +9,15 @@ import Categories from "./categories"
 import { BreadcrumbNavigation } from "./breadcrumb-navigation";
 import { SearchInput } from "./search-input"
 import { DEFAULT_BG_COLOR } from "../../../constants";
+import { useState } from "react";
+import CategoriesSidebar from "./categories-sidebar";
 
 
 export const SearchFilters = () => {
   const trpc = useTRPC();
   const { data } = useSuspenseQuery(trpc.categories.getMany.queryOptions())
+
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const params = useParams();
   const categoryParams = params.category as string | undefined;
@@ -26,7 +30,8 @@ export const SearchFilters = () => {
 
   return (
     <div className="px-4 lg:px-12 py-8 border-b flex flex-col gap-4 w-full" style={{backgroundColor: activeCategoryColor}}>
-      <SearchInput/>
+      <CategoriesSidebar open={isSidebarOpen} onOpenChange={setIsSidebarOpen}/>
+      <SearchInput onOpenSidebar={() => setIsSidebarOpen(true)}/>
       <div className="hidden lg:block">
         <Categories data={data}/>
       </div>

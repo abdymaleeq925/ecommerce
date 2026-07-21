@@ -7,13 +7,14 @@ interface NavbarItem {
   href: string,
   children: React.ReactNode
 }
-interface NavbaSidebarProps {
+interface NavbarSidebarProps {
   items: NavbarItem[],
   open: boolean,
+  isAuthenticated: boolean,
   onOpenChange: (open: boolean) => void;
 }
 
-const NavbarSidebar = ({ items, open, onOpenChange }: NavbaSidebarProps) => {
+const NavbarSidebar = ({ items, open, isAuthenticated, onOpenChange }: NavbarSidebarProps) => {
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="left" className="p-0 transition-none">
@@ -32,20 +33,35 @@ const NavbarSidebar = ({ items, open, onOpenChange }: NavbaSidebarProps) => {
             </Link>
           ))}
           <div className="border-t">
-            <Link 
-              href="/sign-in"
-              className="w-full text-left p-4 hover:bg-black hover:text-white flex items-center text-base font-medium"
-              onClick={() => onOpenChange(false)}
-            >
-              Log In
-            </Link>
-            <Link
-              href="/sign-up"
-              className="w-full text-left p-4 hover:bg-black hover:text-white flex items-center text-base font-medium"
-              onClick={() => onOpenChange(false)}
-            >
-              Start Selling
-            </Link>
+            {
+              isAuthenticated ? (
+                <Link
+                  href="/admin"
+                  className="w-full text-left p-4 hover:bg-black hover:text-white flex items-center text-base font-medium"
+                  onClick={() => onOpenChange(false)}
+                >
+                  Dashboard
+                </Link>
+              ) : (
+                <>
+                  <Link
+                    href="/sign-in"
+                    className="w-full text-left p-4 hover:bg-black hover:text-white flex items-center text-base font-medium"
+                    onClick={() => onOpenChange(false)}
+                  >
+                    Log In
+                  </Link>
+                  <Link
+                    href="/sign-up"
+                    className="w-full text-left p-4 hover:bg-black hover:text-white flex items-center text-base font-medium"
+                    onClick={() => onOpenChange(false)}
+                  >
+                    Start Selling
+                  </Link>
+                </>
+              )
+            }
+
           </div>
         </ScrollArea>
       </SheetContent>

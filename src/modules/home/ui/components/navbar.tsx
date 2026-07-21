@@ -59,7 +59,7 @@ export const Navbar = () => {
 					axisroad
 				</span>
 			</Link>
-			<NavbarSidebar items={navbarItems} open={isSidebarOpen} onOpenChange={setIsSidebarOpen} />
+			<NavbarSidebar items={navbarItems} open={isSidebarOpen} isAuthenticated={Boolean(session.data?.user)} onOpenChange={setIsSidebarOpen} />
 			<div className="items-center gap-4 hidden lg:flex">
 				{
 					navbarItems.map((item) => (
@@ -105,7 +105,11 @@ export const Navbar = () => {
 			}
 
 			<div className="flex lg:hidden justify-center items-center">
-				<Button variant="ghost" className="size-12 border-transparent bg-white" onClick={() => setIsSidebarOpen(true)}>
+				<Button 
+					variant="ghost"
+					className="size-12 border-transparent bg-white"
+					aria-label="Open navigation menu"
+					onClick={() => setIsSidebarOpen(true)}>
 					<MenuIcon />
 				</Button>
 			</div>

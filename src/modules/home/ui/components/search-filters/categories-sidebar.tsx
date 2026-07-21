@@ -1,3 +1,5 @@
+"use client";
+
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
@@ -7,7 +9,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 
 import { useTRPC } from "@/trpc/client";
 import { useQuery } from "@tanstack/react-query";
-import { CategoriesGetManyOutput } from "@/modules/categories/types";
+import { CategoriesGetManyOutput, CategoryItem } from "@/modules/categories/types";
 
 interface CategoriesSidebarProps {
   open: boolean,
@@ -21,7 +23,7 @@ export const CategoriesSidebar = ({ open, onOpenChange }: CategoriesSidebarProps
   const { data } = useQuery(trpc.categories.getMany.queryOptions());
 
   const [parentCategories, setParentCategories] = useState<CategoriesGetManyOutput | null>(null);
-  const [selectedCategory, setSelectedCategory] = useState<CategoriesGetManyOutput[1] | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<CategoryItem | null>(null);
 
   // If we have parent categories, show those, otherwise show root categories
   const currentCategories = parentCategories ?? data ?? [];
@@ -32,9 +34,9 @@ export const CategoriesSidebar = ({ open, onOpenChange }: CategoriesSidebarProps
     onOpenChange(open);
   }
 
-  const handleCategoryClick = (category: CategoriesGetManyOutput[1]) => {
+  const handleCategoryClick = (category: CategoryItem) => {
     if (category.subcategories && category.subcategories.length > 0) {
-      setParentCategories(category.subcategories as CategoriesGetManyOutput);
+      setParentCategories(category.subcategories as unknown as CategoriesGetManyOutput);
       setSelectedCategory(category);
     } else {
       // This is a leaf category (no subcategories)
