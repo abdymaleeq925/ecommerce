@@ -8,22 +8,21 @@ import { cn } from '@/lib/utils'
 import { CategoriesGetManyOutput } from '@/modules/categories/types'
 
 import CategoryDropdown from './category-dropdown'
-import CategoriesSidebar from './categories-sidebar'
 import { useParams } from 'next/navigation'
 
 
 interface CategoriesProps {
-  data: CategoriesGetManyOutput
+  data: CategoriesGetManyOutput,
+  onOpenSidebar: () => void
 }
 
-export const Categories = ({ data }: CategoriesProps) => {
+export const Categories = ({ data, onOpenSidebar }: CategoriesProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const measureRef = useRef<HTMLDivElement>(null);
   const viewAllRef = useRef<HTMLDivElement>(null);
 
   const [visibleCount, setVisibleCount] = useState(data.length);
   const [isAnyHovered, setIsAnyHovered] = useState(false); 
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const params = useParams();
 
@@ -33,8 +32,6 @@ export const Categories = ({ data }: CategoriesProps) => {
 
   const activeCategoryIndex = data.findIndex((cat) => cat.slug === activeCategory);
   const isActiveCategoryHidden = activeCategoryIndex >= visibleCount && activeCategoryIndex !== -1;
-
-  console.log("activeCategoryIndex", activeCategoryIndex, isActiveCategoryHidden, isAnyHovered)
 
   useEffect(() => {
     const calculateVisible = () => {
@@ -66,7 +63,6 @@ export const Categories = ({ data }: CategoriesProps) => {
   
   return (
     <div className="relative w-full">
-      <CategoriesSidebar open={isSidebarOpen} onOpenChange={setIsSidebarOpen} />
       <div
         ref={measureRef}
         className="absolute opacity-0 pointer-events-none flex"
@@ -112,7 +108,7 @@ export const Categories = ({ data }: CategoriesProps) => {
               "h-11 px-4 bg-transparent border-transparent rounded-full hover:bg-white hover:border-primary text-black",
               isActiveCategoryHidden && !isAnyHovered && "bg-white border-primary",
             )}
-            onClick={() => setIsSidebarOpen(true)}
+            onClick={onOpenSidebar}
           >
             View All
             <ListFilterIcon className="ml-2" />

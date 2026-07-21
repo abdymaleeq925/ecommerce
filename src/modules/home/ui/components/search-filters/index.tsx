@@ -19,6 +19,8 @@ export const SearchFilters = () => {
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
+  const handleOpenSidebar = () => setIsSidebarOpen(true);
+
   const params = useParams();
   const categoryParams = params.category as string | undefined;
   const activeCategory = categoryParams || "all";
@@ -31,9 +33,9 @@ export const SearchFilters = () => {
   return (
     <div className="px-4 lg:px-12 py-8 border-b flex flex-col gap-4 w-full" style={{backgroundColor: activeCategoryColor}}>
       <CategoriesSidebar open={isSidebarOpen} onOpenChange={setIsSidebarOpen}/>
-      <SearchInput onOpenSidebar={() => setIsSidebarOpen(true)}/>
+      <SearchInput onOpenSidebar={handleOpenSidebar}/>
       <div className="hidden lg:block">
-        <Categories data={data}/>
+        <Categories data={data} onOpenSidebar={handleOpenSidebar}/>
       </div>
       <BreadcrumbNavigation
         activeCategory={activeCategory}
