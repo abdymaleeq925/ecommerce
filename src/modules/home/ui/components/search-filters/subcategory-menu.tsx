@@ -20,7 +20,7 @@ export const SubcategoryMenu = ({ category, isOpen, position }: SubcategoryMenuP
 
   return (
     <div
-      className="fixed z-100"
+      className="fixed z-[100]"
       style={{ top: position.top, left: position.left }}
     >
       {/* Invisible bridge to maintain hover */}
