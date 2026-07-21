@@ -8,28 +8,27 @@ import { cn } from '@/lib/utils'
 import { CategoriesGetManyOutput } from '@/modules/categories/types'
 
 import CategoryDropdown from './category-dropdown'
-import CategoriesSidebar from './categories-sidebar'
-import { usePathname } from 'next/navigation'
+import { useParams } from 'next/navigation'
 
 
 interface CategoriesProps {
-  data: CategoriesGetManyOutput
+  data: CategoriesGetManyOutput,
+  onOpenSidebar: () => void
 }
 
-export const Categories = ({ data }: CategoriesProps) => {
+export const Categories = ({ data, onOpenSidebar }: CategoriesProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const measureRef = useRef<HTMLDivElement>(null);
   const viewAllRef = useRef<HTMLDivElement>(null);
 
   const [visibleCount, setVisibleCount] = useState(data.length);
-  const [isAnyHovered, setIsAnyHovered] = useState(false);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isAnyHovered, setIsAnyHovered] = useState(false); 
 
-  const pathname = usePathname();
+  const params = useParams();
 
-  const pathSegments = pathname.split("/").filter(Boolean);
+  const categoryParam = params.category as string | undefined;
 
-  const activeCategory = pathSegments[0] || "all";
+  const activeCategory = categoryParam || "all";
 
   const activeCategoryIndex = data.findIndex((cat) => cat.slug === activeCategory);
   const isActiveCategoryHidden = activeCategoryIndex >= visibleCount && activeCategoryIndex !== -1;
@@ -64,10 +63,10 @@ export const Categories = ({ data }: CategoriesProps) => {
   
   return (
     <div className="relative w-full">
-      <CategoriesSidebar open={isSidebarOpen} onOpenChange={setIsSidebarOpen} />
       <div
         ref={measureRef}
         className="absolute opacity-0 pointer-events-none flex"
+        inert
         style={{ position: "fixed", top: -9999, left: -9999 }}
       >
         {
@@ -105,11 +104,12 @@ export const Categories = ({ data }: CategoriesProps) => {
           className="shrink-0"
         >
           <Button
+            variant="elevated"
             className={cn(
               "h-11 px-4 bg-transparent border-transparent rounded-full hover:bg-white hover:border-primary text-black",
               isActiveCategoryHidden && !isAnyHovered && "bg-white border-primary",
             )}
-            onClick={() => setIsSidebarOpen(true)}
+            onClick={onOpenSidebar}
           >
             View All
             <ListFilterIcon className="ml-2" />

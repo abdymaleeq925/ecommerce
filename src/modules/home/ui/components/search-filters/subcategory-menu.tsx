@@ -2,6 +2,7 @@ import Link from 'next/link'
 
 import { Category } from '@/payload-types'
 import { CategoriesGetManyOutput } from '@/modules/categories/types'
+import { DEFAULT_BG_COLOR } from '@/modules/home/constants'
 
 interface SubcategoryMenuProps {
   category: CategoriesGetManyOutput[1],
@@ -14,19 +15,19 @@ export const SubcategoryMenu = ({ category, isOpen, position }: SubcategoryMenuP
     return null
   }
 
-  const backgroundColor = category.color || "F5F5F5";
+  const backgroundColor = category.color || DEFAULT_BG_COLOR;
 
 
   return (
     <div
-      className="fixed z-100"
+      className="fixed z-[100]"
       style={{ top: position.top, left: position.left }}
     >
       {/* Invisible bridge to maintain hover */}
       <div className="h-4 w-60"/>
       <div
         style={{ backgroundColor }}
-        className="w-60 text-black rounded-md overflow-hidden border shadow-[4px_4px_0_0_rgba(0,0,0,1)] -translate-x-2 -translate-y-2"
+        className="w-60 text-black rounded-md overflow-hidden border shadow-[4px_4px_0_0_rgba(0,0,0,1)] -translate-x-1 -translate-y-1"
       >
         <div className="">
           {

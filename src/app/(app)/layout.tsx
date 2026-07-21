@@ -7,6 +7,7 @@ import "./globals.css";
 
 const DMSans = DM_Sans({
   subsets: ["latin"],
+  preload: false,
 });
 
 export const metadata: Metadata = {
