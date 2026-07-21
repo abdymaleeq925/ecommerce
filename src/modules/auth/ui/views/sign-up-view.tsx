@@ -32,7 +32,7 @@ export const SignUpView = () => {
     },
     onSuccess: async () => {
       toast.success("Account created successfully!")
-      await queryClient.invalidateQueries();
+      await queryClient.invalidateQueries(trpc.auth.session.queryFilter());
       router.push("/");
     }
   }));
