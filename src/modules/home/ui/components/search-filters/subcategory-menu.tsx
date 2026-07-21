@@ -26,7 +26,7 @@ export const SubcategoryMenu = ({ category, isOpen, position }: SubcategoryMenuP
       <div className="h-4 w-60"/>
       <div
         style={{ backgroundColor }}
-        className="w-60 text-black rounded-md overflow-hidden border shadow-[4px_4px_0_0_rgba(0,0,0,1)] -translate-x-2 -translate-y-2"
+        className="w-60 text-black rounded-md overflow-hidden border shadow-[4px_4px_0_0_rgba(0,0,0,1)] -translate-x-1 -translate-y-1"
       >
         <div className="">
           {

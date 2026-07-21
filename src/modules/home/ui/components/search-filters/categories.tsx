@@ -9,7 +9,7 @@ import { CategoriesGetManyOutput } from '@/modules/categories/types'
 
 import CategoryDropdown from './category-dropdown'
 import CategoriesSidebar from './categories-sidebar'
-import { usePathname } from 'next/navigation'
+import { useParams } from 'next/navigation'
 
 
 interface CategoriesProps {
@@ -22,17 +22,19 @@ export const Categories = ({ data }: CategoriesProps) => {
   const viewAllRef = useRef<HTMLDivElement>(null);
 
   const [visibleCount, setVisibleCount] = useState(data.length);
-  const [isAnyHovered, setIsAnyHovered] = useState(false);
+  const [isAnyHovered, setIsAnyHovered] = useState(false); 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-  const pathname = usePathname();
+  const params = useParams();
 
-  const pathSegments = pathname.split("/").filter(Boolean);
+  const categoryParam = params.category as string | undefined;
 
-  const activeCategory = pathSegments[0] || "all";
+  const activeCategory = categoryParam || "all";
 
   const activeCategoryIndex = data.findIndex((cat) => cat.slug === activeCategory);
   const isActiveCategoryHidden = activeCategoryIndex >= visibleCount && activeCategoryIndex !== -1;
+
+  console.log("activeCategoryIndex", activeCategoryIndex, isActiveCategoryHidden, isAnyHovered)
 
   useEffect(() => {
     const calculateVisible = () => {
@@ -105,6 +107,7 @@ export const Categories = ({ data }: CategoriesProps) => {
           className="shrink-0"
         >
           <Button
+            variant="elevated"
             className={cn(
               "h-11 px-4 bg-transparent border-transparent rounded-full hover:bg-white hover:border-primary text-black",
               isActiveCategoryHidden && !isAnyHovered && "bg-white border-primary",
