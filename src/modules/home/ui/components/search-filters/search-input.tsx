@@ -1,5 +1,6 @@
 "use client"
 
+import { useSyncExternalStore } from "react"
 import Link from "next/link"
 import { BookmarkCheckIcon, ListFilterIcon, SearchIcon } from "lucide-react"
 import { useQuery } from "@tanstack/react-query"
@@ -8,12 +9,16 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { useTRPC } from "@/trpc/client"
 
+
 interface SearchInputProps {
   disabled?: boolean,
   onOpenSidebar?: () => void
 }
 
+const emptySubscribe = () => () => {};
+
 export const SearchInput = ({ disabled, onOpenSidebar }: SearchInputProps) => {
+  const isMounted = useSyncExternalStore( emptySubscribe, () => true, () => false);
   const trpc = useTRPC();
   const session = useQuery(trpc.auth.session.queryOptions());
 
@@ -32,7 +37,7 @@ export const SearchInput = ({ disabled, onOpenSidebar }: SearchInputProps) => {
         <ListFilterIcon />
       </Button>
       {
-        session.isPending ? (
+        !isMounted || session.isPending ? (
           <div className="size-12 shrink-0 bg-neutral-200 animate-pulse rounded-md" />
         ) : (
           session.data?.user && (

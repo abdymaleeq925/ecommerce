@@ -15,6 +15,7 @@ import NavbarSidebar from "./navbar-sidebar";
 
 const poppins = Poppins({
 	subsets: ["latin"],
+	preload: false,
 	weight: ["700"],
 })
 
