@@ -1,6 +1,5 @@
 "use client"
 
-import { useState } from "react"
 import Link from "next/link"
 import { BookmarkCheckIcon, ListFilterIcon, SearchIcon } from "lucide-react"
 import { useQuery } from "@tanstack/react-query"
