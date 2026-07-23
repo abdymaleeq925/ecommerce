@@ -8,8 +8,8 @@ import { Label } from "@/components/ui/label";
 interface PriceFilterProps {
   minPrice?: string | null,
   maxPrice?: string | null,
-  onMinPriceChange: (value: string) => void,
-  onMaxPriceChange: (value: string) => void
+  onMinPriceChange: (value: string | null) => void,
+  onMaxPriceChange: (value: string | null) => void
 }
 
 export const formatAsCurrency = (value: string) => {
@@ -31,18 +31,39 @@ export const formatAsCurrency = (value: string) => {
   }).format(numberValue);
 }
 
+const PRICE_PATTERN = /^\d+(\.\d{1,2})?$/;
+
 const PriceFilter = ({ minPrice, maxPrice, onMinPriceChange, onMaxPriceChange }: PriceFilterProps) => {
+  const [minDraft, setMinDraft] = useState(minPrice ?? "");
+  const [maxDraft, setMaxDraft] = useState(maxPrice ?? "");
   const [isMinFocused, setIsMinFocused] = useState(false);
   const [isMaxFocused, setIsMaxFocused] = useState(false);
+  
   const handleMinPriceChange = (e: ChangeEvent<HTMLInputElement>) => {
     // Get raw input value and extract only numeric values
     const numericValue = e.target.value.replace(/[^0-9.]/g, "");
-    onMinPriceChange(numericValue);
+    setMinDraft(numericValue);
+
+    if (numericValue === "") {
+      onMinPriceChange(null);
+      return;
+    }
+    if (PRICE_PATTERN.test(numericValue)) {
+      onMinPriceChange(numericValue);
+    }
   }
   const handleMaxPriceChange = (e: ChangeEvent<HTMLInputElement>) => {
     // Get raw input value and extract only numeric values
     const numericValue = e.target.value.replace(/[^0-9.]/g, "");
-    onMaxPriceChange(numericValue);
+    setMaxDraft(numericValue);
+
+    if (numericValue === "") {
+      onMaxPriceChange(null);
+      return;
+    }
+    if (PRICE_PATTERN.test(numericValue)) {
+      onMaxPriceChange(numericValue);
+    }
   }
   return (
     <div className="flex flex-col gap-2">
@@ -51,10 +72,9 @@ const PriceFilter = ({ minPrice, maxPrice, onMinPriceChange, onMaxPriceChange }:
         <Input
           type="text"
           placeholder="0$"
-          value={ isMinFocused ? minPrice ?? "" : minPrice ? formatAsCurrency(minPrice) : ""
-          }
+          value={isMinFocused ? minDraft : (minPrice ? formatAsCurrency(minPrice) : "")}
           onChange={handleMinPriceChange}
-          onFocus={() => setIsMinFocused(true)}
+          onFocus={() => {setMinDraft(minPrice ?? ""); setIsMinFocused(true)}}
           onBlur={() => setIsMinFocused(false)}
         />
       </div>
@@ -63,9 +83,9 @@ const PriceFilter = ({ minPrice, maxPrice, onMinPriceChange, onMaxPriceChange }:
         <Input
           type="text"
           placeholder="∞"
-          value={ isMaxFocused ? maxPrice ?? "" : maxPrice ? formatAsCurrency(maxPrice) : "" }
+          value={isMaxFocused ? maxDraft : (maxPrice ? formatAsCurrency(maxPrice) : "")}
           onChange={handleMaxPriceChange}
-          onFocus={() => setIsMaxFocused(true)}
+          onFocus={() => {setMaxDraft(maxPrice ?? ""); setIsMaxFocused(true)}}
           onBlur={() => setIsMaxFocused(false)}
         />
       </div>
