@@ -24,10 +24,15 @@ const ProductFilter = ({ title, className, children }: ProductFilterProps) => {
       "p-4 border-b flex flex-col gap-2",
       className
     )}>
-      <div className="flex items-center justify-between cursor-pointer" onClick={() => setIsOpen((current) => !current)}>
+      <button
+        type="button"
+        className="flex items-center justify-between cursor-pointer"
+        onClick={() => setIsOpen((current) => !current)}
+        aria-expanded={isOpen}
+      >
         <p className="font-medium">{title}</p>
         <Icon className="size-5" />
-      </div>
+      </button>
       {isOpen && children}
     </div>
   )
@@ -42,7 +47,13 @@ const ProductFilters = () => {
     <div className="border rounded-md bg-white">
       <div className="p-4 border-b flex items-center justify-between">
         <p className="font-medium">Filters</p>
-        <button className="underline" onClick={() => { }} type="button">Clear</button>
+        <button
+          className="underline"
+          onClick={() => setFilters({ minPrice: null, maxPrice: null })}
+          type="button"
+        >
+          Clear
+        </button>
       </div>
       <ProductFilter title="Price" className="border-b-0">
         <PriceFilter

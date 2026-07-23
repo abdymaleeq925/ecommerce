@@ -5,6 +5,15 @@ import type { Where } from "payload";
 import { baseProcedure, createTRPCRouter } from "@/trpc/init";
 import { Category } from "@/payload-types";
 
+const priceParam = z
+  .string()
+  .trim()
+  .regex(/^\d+(\.\d{1,2})?$/, "Invalid price format")
+  .transform((val) => Number(val))
+  .refine((val) => Number.isFinite(val) && val >= 0, "Invalid price value")
+  .nullable()
+  .optional();
+
 export const productsRouter = createTRPCRouter({
   getMany: baseProcedure
     .input(
@@ -12,26 +21,30 @@ export const productsRouter = createTRPCRouter({
         category: z.string().nullable().optional(),
         page: z.number().default(1),
         limit: z.number().default(12),
-        minPrice: z.string().nullable().optional(),
-        maxPrice: z.string().nullable().optional(),
+        minPrice: priceParam,
+        maxPrice: priceParam
       }),
     )
     .query(async ({ ctx, input }) => {
       const where: Where = {};
-      if (input.minPrice && input.maxPrice) {
+      if (input.minPrice != null && input.maxPrice != null && input.minPrice > input.maxPrice) {
+        [input.minPrice, input.maxPrice] = [input.maxPrice, input.minPrice];
+      }
+      if (input.minPrice != null && input.maxPrice != null) {
         where.price = {
           greater_than_equal: input.minPrice,
           less_than_equal: input.maxPrice,
         };
-      } else if (input.minPrice) {
+      } else if (input.minPrice != null) {
         where.price = {
           greater_than_equal: input.minPrice,
         };
-      } else if (input.maxPrice) {
+      } else if (input.maxPrice != null) {
         where.price = {
           less_than_equal: input.maxPrice,
         };
       }
+
       if (input.category) {
         const categoriesData = await ctx.db.find({
           collection: "categories",
