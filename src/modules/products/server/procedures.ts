@@ -9,7 +9,9 @@ export const productsRouter = createTRPCRouter({
   getMany: baseProcedure
   .input(
     z.object({
-      category: z.string().nullable().optional()
+      category: z.string().nullable().optional(),
+      page: z.number().default(1),
+      limit: z.number().default(12)
     })
   )
   .query(async ({ ctx, input }) => {
@@ -27,30 +29,33 @@ export const productsRouter = createTRPCRouter({
         }
       });
 
-      const formattedData = categoriesData.docs.map((parentDoc) => ({
-        ...parentDoc,
-        subcategories: (parentDoc.subcategories?.docs ?? []).map((doc) => ({
-          // Because of "depth:1" we are confident "doc" will be a type of "Category"
-          ...(doc as Category),
-          subcategories: undefined,
-        })),
-      }));
-      const subcategoriesSlugs = [];
-      const parentCategory = formattedData[0];
+      const parentCategory = categoriesData.docs[0];
 
-      if(parentCategory) {
-        subcategoriesSlugs.push(
-          ...parentCategory.subcategories.map((subcategory) => subcategory.slug)
-        )
-        where["category.slug"] = {
-          in: [parentCategory.slug, ...subcategoriesSlugs]
+      if(!parentCategory) {
+        return {
+          docs: [],
+          totalDocs: 0,
+          limit: input.limit,
+          page: input.page,
+          totalPages: 0,
+          hasNextPage: false,
+          hasPrevPage: false,
         }
+        
+      } 
+
+      const subcategoriesSlugs: string[] = (parentCategory.subcategories?.docs ?? []).filter((doc): doc is Category => typeof doc !== "string").map((doc) => doc.slug);
+
+      where["category.slug"] = {
+        in: [parentCategory.slug, ...subcategoriesSlugs]
       }
     }
     const data = await ctx.db.find({
       collection: "products",
       depth: 1, //populate "category" and "image"
-      where
+      where,
+      page: input.page,
+      limit: input.limit
     });
 
     return data;

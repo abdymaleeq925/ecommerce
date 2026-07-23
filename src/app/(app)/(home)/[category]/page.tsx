@@ -11,7 +11,7 @@ interface CategoriesProps {
 const Page = async ({ params }: CategoriesProps) => {
   const { category } = await params;
   const queryClient = getQueryClient();
-  void queryClient.prefetchQuery(trpc.products.getMany.queryOptions({category}));
+  await queryClient.prefetchQuery(trpc.products.getMany.queryOptions({category}));
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
       <Suspense fallback={<ProductListSkeleton/>}>

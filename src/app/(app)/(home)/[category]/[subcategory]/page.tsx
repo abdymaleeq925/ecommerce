@@ -11,7 +11,7 @@ interface SubcategoriesProps {
 const Page = async ({ params }: SubcategoriesProps) => {
   const { subcategory } = await params;
   const queryClient = getQueryClient();
-  void queryClient.prefetchQuery(trpc.products.getMany.queryOptions({category: subcategory}));
+  await queryClient.prefetchQuery(trpc.products.getMany.queryOptions({category: subcategory}));
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
       <Suspense fallback={<ProductListSkeleton/>}>
