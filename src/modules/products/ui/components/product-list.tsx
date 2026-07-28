@@ -15,8 +15,7 @@ export const ProductList = ({ category }: ProductListProps) => {
   const { data } = useSuspenseQuery(
     trpc.products.getMany.queryOptions({
       category,
-      minPrice: filters.minPrice,
-      maxPrice: filters.maxPrice,
+      ... filters
     }),
   );
   return (

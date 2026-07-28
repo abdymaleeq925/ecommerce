@@ -8,7 +8,7 @@ import { useTRPC } from "@/trpc/client"
 import Categories from "./categories"
 import { BreadcrumbNavigation } from "./breadcrumb-navigation";
 import { SearchInput } from "./search-input"
-import { DEFAULT_BG_COLOR } from "../../../constants";
+import { DEFAULT_BG_COLOR } from "../../../../../constants";
 import { useState } from "react";
 import CategoriesSidebar from "./categories-sidebar";
 
