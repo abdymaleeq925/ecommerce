@@ -65,9 +65,7 @@ const TagsFilter = ({ value, onChange }: TagsFilterProps) => {
         >
           Load more...
         </button>
-      )
-
-      }
+      )}
     </div>
   )
 }

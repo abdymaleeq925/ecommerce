@@ -12,11 +12,11 @@ export const Tags: CollectionConfig = {
       required: true,
       unique: true
     },
-    {
-			name: "products",
-			type: "relationship",
-			relationTo: "products",
-			hasMany: true
-    }
+    // {
+		// 	name: "products",
+		// 	type: "relationship",
+		// 	relationTo: "products",
+		// 	hasMany: true
+    // }
   ]
 }

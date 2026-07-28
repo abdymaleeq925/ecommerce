@@ -7,7 +7,7 @@ import { Category } from "@/payload-types";
 import { sortValues } from "../search-params";
 
 const priceFilter = z.preprocess(
-  (value) => value == null || value === "" ? value : Number(value),
+  (value) => value === "" ? null : value == null ? value : Number(value),
   z.number().finite().nonnegative().nullable().optional()
 )
 
