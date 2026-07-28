@@ -42,18 +42,18 @@ const TagsFilter = ({ value, onChange }: TagsFilterProps) => {
       ) : (
         data?.pages.map((page) =>
           page.docs.map((tag) => (
-            <div
+            <label
               key={tag.id}
+              htmlFor={`tag-${tag.id}`}
               className="flex items-center justify-between cursor-pointer"
-              onClick={() => onClick(tag.name)}
             >
               {tag.name}
               <Checkbox
+                id={`tag-${tag.id}`}
                 checked={!!value?.includes(tag.name)}
                 onCheckedChange={() => onClick(tag.name)}
-                onClick={(e) => e.stopPropagation()}
               />
-            </div>
+            </label>
           ))
         )
       )}

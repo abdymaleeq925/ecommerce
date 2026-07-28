@@ -5,9 +5,6 @@ export const Tags: CollectionConfig = {
 	admin: {
 		useAsTitle: "name"
 	},
-  access: {
-    read: () => true,
-  },
   fields: [
     {
       name: 'name',

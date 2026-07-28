@@ -6,6 +6,11 @@ import { baseProcedure, createTRPCRouter } from "@/trpc/init";
 import { Category } from "@/payload-types";
 import { sortValues } from "../search-params";
 
+const priceFilter = z.preprocess(
+  (value) => value == null || value === "" ? value : Number(value),
+  z.number().finite().nonnegative().nullable().optional()
+)
+
 export const productsRouter = createTRPCRouter({
   getMany: baseProcedure
     .input(
@@ -13,8 +18,8 @@ export const productsRouter = createTRPCRouter({
         category: z.string().nullable().optional(),
         page: z.number().default(1),
         limit: z.number().default(12),
-        minPrice: z.string().nullable().optional(),
-        maxPrice: z.string().nullable().optional(),
+        minPrice: priceFilter,
+        maxPrice: priceFilter,
         tags: z.array(z.string()).nullable().optional(),
         sort: z.enum(sortValues).nullable().optional()
       }),

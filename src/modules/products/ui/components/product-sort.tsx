@@ -11,6 +11,7 @@ const ProductSort = () => {
     <div className="flex items-center gap-2">
       <Button
         size="sm"
+        aria-pressed={filters.sort === "curated"}
         className={cn(
           "rounded-full bg-white hover:bg-white",
           filters.sort !== "curated" && "bg-transparent border-transparent hover:border-border hover:bg-transparent"
@@ -22,6 +23,7 @@ const ProductSort = () => {
       </Button>
       <Button
         size="sm"
+        aria-pressed={filters.sort === "old"}
         className={cn(
           "rounded-full bg-white hover:bg-white",
           filters.sort !== "old" && "bg-transparent border-transparent hover:border-border hover:bg-transparent"
@@ -33,6 +35,7 @@ const ProductSort = () => {
       </Button>
       <Button
         size="sm"
+        aria-pressed={filters.sort === "hot_and_new"}
         className={cn(
           "rounded-full bg-white hover:bg-white",
           filters.sort !== "hot_and_new" && "bg-transparent border-transparent hover:border-border hover:bg-transparent"
