@@ -6,6 +6,7 @@ import { ChevronDown, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 import PriceFilter from "./price-filter";
+import TagsFilter from "./tags-filter";
 import { useProductFilters } from "../../hooks/use-product-filters";
 
 interface ProductFilterProps {
@@ -40,27 +41,51 @@ const ProductFilter = ({ title, className, children }: ProductFilterProps) => {
 
 const ProductFilters = () => {
   const [filters, setFilters] = useProductFilters();
-  const onChange = (key: keyof typeof filters, value: string | null) => {
+  const hasAnyFilters = Object.entries(filters).some(([key, value]) => {
+    if (key === "sort") return false
+    if (Array.isArray(value)) return value.length > 0;
+    if (typeof value === "string") return value !== "";
+    return value !== null;
+  });
+  const onChange = <K extends keyof typeof filters>(key: K, value: typeof filters[K]) => {
     setFilters({ ...filters, [key]: value });
   }
+  const onClear = () => {
+    setFilters({
+      minPrice: null,
+      maxPrice: null,
+      tags: null
+    })
+  }
+
   return (
     <div className="border rounded-md bg-white">
       <div className="p-4 border-b flex items-center justify-between">
         <p className="font-medium">Filters</p>
-        <button
-          className="underline"
-          onClick={() => setFilters({ minPrice: null, maxPrice: null })}
-          type="button"
-        >
-          Clear
-        </button>
+        {
+          hasAnyFilters && (
+            <button
+              className="underline cursor-pointer"
+              onClick={() => onClear()}
+              type="button"
+            >
+              Clear
+            </button>
+          )
+        }
       </div>
-      <ProductFilter title="Price" className="border-b-0">
+      <ProductFilter title="Price">
         <PriceFilter
           minPrice={filters.minPrice}
           maxPrice={filters.maxPrice}
           onMinPriceChange={(value) => onChange("minPrice", value)}
           onMaxPriceChange={(value) => onChange("maxPrice", value)}
+        />
+      </ProductFilter>
+      <ProductFilter title="Tags" className="border-b-0">
+        <TagsFilter
+          value={filters.tags}
+          onChange={(value) => onChange("tags", value)}
         />
       </ProductFilter>
     </div>

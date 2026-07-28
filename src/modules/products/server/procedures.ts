@@ -1,18 +1,10 @@
 import z from "zod";
 
-import type { Where } from "payload";
+import type { Sort, Where } from "payload";
 
 import { baseProcedure, createTRPCRouter } from "@/trpc/init";
 import { Category } from "@/payload-types";
-
-const priceParam = z
-  .string()
-  .trim()
-  .regex(/^\d+(\.\d{1,2})?$/, "Invalid price format")
-  .transform((val) => Number(val))
-  .refine((val) => Number.isFinite(val) && val >= 0, "Invalid price value")
-  .nullable()
-  .optional();
+import { sortValues } from "../search-params";
 
 export const productsRouter = createTRPCRouter({
   getMany: baseProcedure
@@ -21,12 +13,20 @@ export const productsRouter = createTRPCRouter({
         category: z.string().nullable().optional(),
         page: z.number().default(1),
         limit: z.number().default(12),
-        minPrice: priceParam,
-        maxPrice: priceParam
+        minPrice: z.string().nullable().optional(),
+        maxPrice: z.string().nullable().optional(),
+        tags: z.array(z.string()).nullable().optional(),
+        sort: z.enum(sortValues).nullable().optional()
       }),
     )
     .query(async ({ ctx, input }) => {
       const where: Where = {};
+      let sort: Sort = "-createdAt";
+
+      if(input.sort === "curated") sort = "name"
+      if(input.sort === "hot_and_new") sort = "-createdAt"
+      if(input.sort === "old") sort = "createdAt"
+
       if (input.minPrice != null && input.maxPrice != null && input.minPrice > input.maxPrice) {
         [input.minPrice, input.maxPrice] = [input.maxPrice, input.minPrice];
       }
@@ -82,12 +82,18 @@ export const productsRouter = createTRPCRouter({
           in: [parentCategory.slug, ...subcategoriesSlugs],
         };
       }
+      if(input.tags && input.tags.length >0) {
+        where["tags.name"] = {
+          in: input.tags
+        }
+      }
       const data = await ctx.db.find({
         collection: "products",
         depth: 1, //populate "category" and "image"
         where,
         page: input.page,
         limit: input.limit,
+        sort
       });
 
       return data;

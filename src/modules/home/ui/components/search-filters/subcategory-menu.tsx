@@ -2,8 +2,7 @@ import Link from 'next/link'
 
 import { Category } from '@/payload-types'
 import { CategoriesGetManyOutput } from '@/modules/categories/types'
-import { DEFAULT_BG_COLOR } from '@/modules/home/constants'
-
+import { DEFAULT_BG_COLOR } from '@/constants'
 interface SubcategoryMenuProps {
   category: CategoriesGetManyOutput[1],
   isOpen: boolean,
