@@ -134,6 +134,33 @@ const categories = [
 const seed = async () => {
   const payload = await getPayload({ config });
 
+  // Create admin tenant
+
+  const adminTenant = await payload.create({
+    collection: "tenants",
+    data: {
+      name: "admin",
+      slug: "admin",
+      stripeAccountId: "admin"
+    }
+  })
+
+  // Create admin user
+  await payload.create({
+    collection: "users",
+    data: {
+      email: "admin@demo.com",
+      password: "demo",
+      roles: ["super-admin"],
+      username: "admin",
+      tenants: [
+        {
+          tenant: adminTenant.id
+        }
+      ]
+    }
+  })
+
   for (const category of categories) {
     const existingParent = await payload.find({
       collection: "categories",
@@ -148,7 +175,7 @@ const seed = async () => {
     if (existingParent.docs.length > 0) {
       parentCategory = await payload.update({
         collection: "categories",
-        id: existingParent.docs[0].id,
+        id: existingParent.docs[0]!.id,
         data: {
           name: category.name,
           color: category.color,
@@ -194,7 +221,7 @@ const seed = async () => {
       if (existingSub.docs.length > 0) {
         savedSubcategory = await payload.update({
           collection: "categories",
-          id: existingSub.docs[0].id,
+          id: existingSub.docs[0]!.id,
           data: {
             name: subCategory.name,
             parent: parentCategory.id,

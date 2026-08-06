@@ -7,7 +7,6 @@ import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { CategoryItem } from '@/modules/categories/types';
 
-import { useDropdownPosition } from './use-dropdown-position';
 import SubcategoryMenu from './subcategory-menu';
 
 interface CategoryDropdownProps {
@@ -19,7 +18,6 @@ interface CategoryDropdownProps {
 export const CategoryDropdown = ({ category, isActive, isNavigationHovered }: CategoryDropdownProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const { getDropdownPosition } = useDropdownPosition(dropdownRef);
 
   const hasSubcategories = Boolean(category.subcategories && category.subcategories.length > 0);
 
@@ -44,8 +42,6 @@ export const CategoryDropdown = ({ category, isActive, isNavigationHovered }: Ca
       dropdownRef.current?.querySelector('a')?.focus();
     }
   }
-
-  const dropdownPosition = getDropdownPosition();
 
   // const toggleDropdown = () => {
   //   if(category.subcategories?.docs?.length) {
@@ -92,7 +88,6 @@ export const CategoryDropdown = ({ category, isActive, isNavigationHovered }: Ca
       <SubcategoryMenu
         category={category}
         isOpen={isOpen}
-        position={dropdownPosition}
       />
     </div>
   )
