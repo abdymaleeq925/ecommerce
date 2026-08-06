@@ -8,19 +8,22 @@ import { Button } from "@/components/ui/button";
 import { DEFAULT_LIMIT } from "@/constants";
 import { useProductFilters } from "../../hooks/use-product-filters";
 import ProductCard, { ProductCardSkeleton } from "./product-card";
-import { getMediaUrl } from "../../hooks/media";
+import { cn } from "@/lib/utils";
 
 interface ProductListProps {
-  category?: string
+  category?: string,
+  tenantSlug?: string,
+  narrowView?: boolean
 }
 
-export const ProductList = ({ category }: ProductListProps) => {
+export const ProductList = ({ category, tenantSlug, narrowView }: ProductListProps) => {
   const trpc = useTRPC();
   const [filters] = useProductFilters();
   const { data, hasNextPage, isFetchingNextPage, fetchNextPage } = useSuspenseInfiniteQuery(trpc.products.getMany.infiniteQueryOptions(
       {
         ... filters,
         category,
+        tenantSlug,
         limit: DEFAULT_LIMIT,
       },
       {
@@ -40,23 +43,23 @@ export const ProductList = ({ category }: ProductListProps) => {
     }
   return (
     <>
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4">
-        {data?.pages.flatMap((page) => page.docs).map((product) => {
-          const tenant = product.tenant && typeof product.tenant !== "string" ? product.tenant : null;
-          return (
-            <ProductCard 
+      <div className={cn(
+        "grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4",
+        narrowView && "lg:grid-cols-2 xl:grid-cols-3"
+        )}>
+        {data?.pages.flatMap((page) => page.docs).map((product) => (
+          <ProductCard 
             key={product.id}
             id={product.id}
             name={product.name}
-            imageUrl={product.image?.url || "/placeholder.png"}
-            authorUsername={tenant?.name ?? null}
-            authorImageUrl={getMediaUrl(tenant?.image)}
+            imageUrl={product.image?.url}
+            tenantSlug={product.tenant?.slug}
+            tenantImageUrl={product.tenant?.image?.url}
             reviewRating={3}
             reviewCount={5}
             price={product.price}
           />
-          )
-})}
+        ))}
       </div>
       <div className="flex justify-center pt-8">
         {hasNextPage && (
@@ -74,9 +77,12 @@ export const ProductList = ({ category }: ProductListProps) => {
   )
 }
 
-export const ProductListSkeleton = () => {
+export const ProductListSkeleton = ({ narrowView }: ProductListProps) => {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4">
+    <div className={cn(
+      "grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4",
+      narrowView && "lg:grid-cols-2 xl:grid-cols-3"
+      )}>
       {Array.from({length: DEFAULT_LIMIT}).map((_, index) => (
         <ProductCardSkeleton key={index}/>
       ))}
