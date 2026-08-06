@@ -1,22 +1,23 @@
-import { Suspense } from "react";
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
-
+import { SearchParams } from "nuqs/server";
 import { getQueryClient, trpc } from "@/trpc/server";
-import { ProductList, ProductListSkeleton } from "@/modules/products/ui/components/product-list";
+import { loadProductFilters } from "@/modules/products/search-params";
+import { ProductListView } from "@/modules/products/ui/views/product-list-views";
 
 interface SubcategoriesProps {
-  params: Promise<{subcategory: string}>
+  params: Promise<{subcategory: string}>,
+  searchParams: Promise<SearchParams>
 }
 
-const Page = async ({ params }: SubcategoriesProps) => {
+const Page = async ({ params, searchParams }: SubcategoriesProps) => {
   const { subcategory } = await params;
+  const filters = await loadProductFilters(searchParams);
+
   const queryClient = getQueryClient();
-  await queryClient.prefetchQuery(trpc.products.getMany.queryOptions({category: subcategory}));
+  await queryClient.prefetchQuery(trpc.products.getMany.queryOptions({ category: subcategory, ...filters }));
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
-      <Suspense fallback={<ProductListSkeleton/>}>
-        <ProductList category={subcategory}/>
-      </Suspense>
+      <ProductListView category={subcategory}/>
     </HydrationBoundary>
   )
 }
