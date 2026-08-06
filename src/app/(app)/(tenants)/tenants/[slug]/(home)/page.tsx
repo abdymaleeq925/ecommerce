@@ -17,7 +17,7 @@ const Page = async({ searchParams, params }:PageProps) => {
   const { slug } = await params;
   const filters = await loadProductFilters(searchParams);
   const queryClient = getQueryClient();
-  void queryClient.prefetchInfiniteQuery(trpc.products.getMany.infiniteQueryOptions(
+  await queryClient.prefetchInfiniteQuery(trpc.products.getMany.infiniteQueryOptions(
     { tenantSlug: slug, limit: DEFAULT_LIMIT, ...filters },
     {
       getNextPageParam: (lastPage) => {
