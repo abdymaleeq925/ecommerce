@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { DEFAULT_LIMIT } from "@/constants";
 import { useProductFilters } from "../../hooks/use-product-filters";
 import ProductCard, { ProductCardSkeleton } from "./product-card";
+import { getMediaUrl } from "../../hooks/media";
 
 interface ProductListProps {
   category?: string
@@ -40,19 +41,22 @@ export const ProductList = ({ category }: ProductListProps) => {
   return (
     <>
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4">
-        {data?.pages.flatMap((page) => page.docs).map((product) => (
-          <ProductCard 
+        {data?.pages.flatMap((page) => page.docs).map((product) => {
+          const tenant = product.tenant && typeof product.tenant !== "string" ? product.tenant : null;
+          return (
+            <ProductCard 
             key={product.id}
             id={product.id}
             name={product.name}
             imageUrl={product.image?.url || "/placeholder.png"}
-            authorUsername="Abdymalik"
-            authorImageUrl={undefined}
+            authorUsername={tenant?.name ?? null}
+            authorImageUrl={getMediaUrl(tenant?.image)}
             reviewRating={3}
             reviewCount={5}
             price={product.price}
           />
-        ))}
+          )
+})}
       </div>
       <div className="flex justify-center pt-8">
         {hasNextPage && (

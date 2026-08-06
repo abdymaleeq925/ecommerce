@@ -6,7 +6,7 @@ interface ProductCardProps {
   id: string,
   name: string,
   imageUrl?: string | null,
-  authorUsername: string,
+  authorUsername: string | null,
   authorImageUrl?: string | null,
   reviewRating: number,
   reviewCount: number,
@@ -31,7 +31,7 @@ const ProductCard = ({ id, name, imageUrl, authorUsername, authorImageUrl, revie
           <div className="flex items-center gap-2" onClick={() => {}}>
             {authorImageUrl && (
               <Image
-                alt={authorUsername}
+                alt={authorUsername ?? name}
                 src={authorImageUrl}
                 width={16}
                 height={16}
