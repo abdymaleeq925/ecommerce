@@ -3,8 +3,9 @@ import z from "zod";
 import type { Sort, Where } from "payload";
 
 import { baseProcedure, createTRPCRouter } from "@/trpc/init";
-import { Category } from "@/payload-types";
+import { Category, Media } from "@/payload-types";
 import { sortValues } from "../search-params";
+import { DEFAULT_LIMIT } from "@/constants";
 
 const priceFilter = z.preprocess(
   (value) => value === "" ? null : value == null ? value : Number(value),
@@ -16,8 +17,8 @@ export const productsRouter = createTRPCRouter({
     .input(
       z.object({
         category: z.string().nullable().optional(),
-        page: z.number().default(1),
-        limit: z.number().default(12),
+        cursor: z.number().default(1),
+        limit: z.number().default(DEFAULT_LIMIT),
         minPrice: priceFilter,
         maxPrice: priceFilter,
         tags: z.array(z.string()).nullable().optional(),
@@ -70,10 +71,12 @@ export const productsRouter = createTRPCRouter({
             docs: [],
             totalDocs: 0,
             limit: input.limit,
-            page: input.page,
+            page: input.cursor,
             totalPages: 0,
             hasNextPage: false,
             hasPrevPage: false,
+            nextPage: null,
+            prevPage: null,
           };
         }
 
@@ -96,11 +99,17 @@ export const productsRouter = createTRPCRouter({
         collection: "products",
         depth: 1, //populate "category" and "image"
         where,
-        page: input.page,
+        sort,
+        page: input.cursor,
         limit: input.limit,
-        sort
       });
 
-      return data;
+      return {
+        ...data,
+        docs: data.docs.map((doc) => ({
+          ...doc,
+          image: doc.image as Media | null
+        }))
+      };
     }),
 });
