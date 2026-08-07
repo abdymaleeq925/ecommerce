@@ -14,6 +14,7 @@ interface StarRatingProps {
 
 export const StarRating = ({ rating, className, iconClassName, text }: StarRatingProps) => {
   const safeRating = Math.max(MIN_RATING, Math.min(rating, MAX_RATING));
+  const filledRating = Math.floor(safeRating);
 
   return (
     <div className={cn("flex items-center gap-x-1", className)}>
@@ -22,7 +23,7 @@ export const StarRating = ({ rating, className, iconClassName, text }: StarRatin
           key={index}
           className={cn(
             "size-4",
-            index < safeRating ? "fill-black" : "",
+            index < filledRating ? "fill-black" : "",
             iconClassName
           )}
         />

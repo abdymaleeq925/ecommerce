@@ -20,7 +20,7 @@ interface ProductViewProps {
 
 export const ProductView = ({ productId, tenantSlug }: ProductViewProps) => {
   const trpc = useTRPC();
-  const { data } = useSuspenseQuery(trpc.products.getOne.queryOptions({ id: productId }));
+  const { data } = useSuspenseQuery(trpc.products.getOne.queryOptions({ id: productId, tenantSlug: tenantSlug }));
   return (
     <div className="px-4 lg:px-12 py-10">
       <div className="border rounded-sm bg-white overflow-hidden">
