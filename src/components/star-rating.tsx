@@ -17,7 +17,11 @@ export const StarRating = ({ rating, className, iconClassName, text }: StarRatin
   const filledRating = Math.floor(safeRating);
 
   return (
-    <div className={cn("flex items-center gap-x-1", className)}>
+    <div
+      role="img" 
+      aria-label={`${safeRating} out of ${MAX_RATING} stars`}
+      className={cn("flex items-center gap-x-1", className)}
+    >
       {Array.from({length: MAX_RATING}).map((_, index) => (
         <StarIcon
           key={index}

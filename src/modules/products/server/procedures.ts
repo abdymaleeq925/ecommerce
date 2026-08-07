@@ -22,11 +22,19 @@ export const productsRouter = createTRPCRouter({
       }),
     )
     .query(async ({ctx, input}) => {
-      const product = await ctx.db.findByID({
-        collection: "products",
-        id: input.id,
-        depth: 2 // 2 is default, it loads the "product.image", "product.tenant" and "product.tenant.image"
-      })
+      let product;
+      try {
+        product = await ctx.db.findByID({
+          collection: "products",
+          id: input.id,
+          depth: 2 // 2 is default, it loads the "product.image", "product.tenant" and "product.tenant.image"
+        })
+      } catch (error) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Product not found",
+        });
+      }
 
     const productTenant = product.tenant as Tenant & { image: Media | null };
     const productTenantSlug = typeof product.tenant === "string" ? null : productTenant?.slug;
