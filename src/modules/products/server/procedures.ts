@@ -6,6 +6,7 @@ import { baseProcedure, createTRPCRouter } from "@/trpc/init";
 import { Category, Media, Tenant } from "@/payload-types";
 import { sortValues } from "../search-params";
 import { DEFAULT_LIMIT } from "@/constants";
+import { TRPCError } from "@trpc/server";
 
 const priceFilter = z.preprocess(
   (value) => value === "" ? null : value == null ? value : Number(value),
@@ -13,6 +14,44 @@ const priceFilter = z.preprocess(
 )
 
 export const productsRouter = createTRPCRouter({
+  getOne: baseProcedure
+    .input(
+      z.object({
+        id: z.string(),
+        tenantSlug: z.string()
+      }),
+    )
+    .query(async ({ctx, input}) => {
+      let product;
+      try {
+        product = await ctx.db.findByID({
+          collection: "products",
+          id: input.id,
+          depth: 2 // 2 is default, it loads the "product.image", "product.tenant" and "product.tenant.image"
+        })
+      } catch (error) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Product not found",
+        });
+      }
+
+    const productTenant = product.tenant as Tenant & { image: Media | null };
+    const productTenantSlug = typeof product.tenant === "string" ? null : productTenant?.slug;
+
+    if (productTenantSlug !== input.tenantSlug) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Product not found",
+      });
+    }
+
+    return {
+      ...product,
+      image: product.image as Media | null,
+      tenant: productTenant as Tenant & { image: Media | null }
+    }
+    }),
   getMany: baseProcedure
     .input(
       z.object({
