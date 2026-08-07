@@ -5,6 +5,7 @@ import { multiTenantPlugin } from "@payloadcms/plugin-multi-tenant"
 import path from "path"
 import { buildConfig } from "payload";
 import { fileURLToPath } from "url";
+import { Config } from "./payload-types";
 import sharp from "sharp";
 
 import { Users } from "./collections/Users";
@@ -13,6 +14,7 @@ import { Categories } from "./collections/Categories";
 import { Products } from "./collections/Products";
 import { Tags } from "./collections/Tags";
 import { Tenants } from "./collections/Tenants";
+
 
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
@@ -34,7 +36,7 @@ export default buildConfig({
     url: process.env.DATABASE_URL || "",
   }),
   sharp,
-  plugins: [ multiTenantPlugin({
+  plugins: [ multiTenantPlugin<Config>({
     collections: {
       products: {}
     },
@@ -43,7 +45,7 @@ export default buildConfig({
     },
     userHasAccessToAllTenants: (user) => {
       if (user && 'roles' in user && Array.isArray(user.roles)) {
-        return user.roles.includes('super-admin')
+        return user.roles?.includes('super-admin')
       }
       return false
     }

@@ -4,7 +4,7 @@ import Image from "next/image"
 import Link from "next/link"
 import { StarIcon } from "lucide-react"
 
-import { generateTenantURL } from "@/lib/utils"
+import { formatCurrency, generateTenantURL } from "@/lib/utils"
 
 interface ProductCardProps {
   id: string,
@@ -20,7 +20,7 @@ interface ProductCardProps {
 const ProductCard = ({ id, name, imageUrl, tenantSlug, tenantImageUrl, reviewRating, reviewCount, price }: ProductCardProps) => {
   return (
     <div className="hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-shadow border rounded-md bg-white overflow-hidden h-full flex flex-col">
-      <Link href={`/products/${id}`} className="contents">
+      <Link href={`${generateTenantURL(tenantSlug)}/products/${id}`} className="contents">
         <div className="relative aspect-square">
           <Image
             alt={name}
@@ -60,13 +60,10 @@ const ProductCard = ({ id, name, imageUrl, tenantSlug, tenantImageUrl, reviewRat
         )}
       </div>
 
-      <Link href={`/products/${id}`} className="p-4 block">
+      <Link href={`${generateTenantURL(tenantSlug)}/products/${id}`} className="p-4 block">
         <div className="relative px-2 py-1 border bg-pink-400 w-fit">
           <p className="text-sm font-medium">
-            {new Intl.NumberFormat("en-US", {
-              style: "currency",
-              currency: "USD"
-            }).format(Number(price))}
+            {formatCurrency(price)}
           </p>
         </div>
       </Link>
