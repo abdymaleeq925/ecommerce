@@ -16,6 +16,8 @@ export const checkoutRouter = createTRPCRouter({
       const data = await ctx.db.find({
         collection: "products",
         depth: 2,
+        overrideAccess: false,
+        limit: input.ids.length,
         where: {
           id: {
             in: input.ids

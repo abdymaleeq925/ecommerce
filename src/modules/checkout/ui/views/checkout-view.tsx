@@ -16,15 +16,15 @@ interface CheckoutViewProps {
 
 const CheckoutView = ({ tenantSlug }: CheckoutViewProps) => {
   const trpc = useTRPC();
-  const { productIds, clearAllCarts, removeProduct } = useCart(tenantSlug);
+  const { productIds, clearCart, removeProduct } = useCart(tenantSlug);
   const { data, error, isLoading } = useQuery(trpc.checkout.getProducts.queryOptions({ ids: productIds }));
 
   useEffect(() => {
     if (error?.data?.code === "NOT_FOUND") {
-      clearAllCarts();
+      clearCart();
       toast.warning("Invalid products found, cart is cleared");
     }
-  }, [error, clearAllCarts])
+  }, [error, clearCart])
 
   if (isLoading) return (
     <div className="lg:pt-16 pt-4 px-4 lg:px-12">
