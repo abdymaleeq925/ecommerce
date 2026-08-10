@@ -9,6 +9,7 @@ import { generateTenantURL } from "@/lib/utils";
 import { useCart } from "../../hooks/use-cart";
 import CheckoutItem from "../components/checkout-item";
 import CheckoutSidebar from "../components/checkout-sidebar";
+import { Button } from "@/components/ui/button";
 
 interface CheckoutViewProps {
   tenantSlug: string
@@ -17,7 +18,7 @@ interface CheckoutViewProps {
 const CheckoutView = ({ tenantSlug }: CheckoutViewProps) => {
   const trpc = useTRPC();
   const { productIds, clearCart, removeProduct } = useCart(tenantSlug);
-  const { data, error, isLoading } = useQuery(trpc.checkout.getProducts.queryOptions({ ids: productIds }));
+  const { data, error, isLoading, refetch } = useQuery(trpc.checkout.getProducts.queryOptions({ ids: productIds, tenantSlug }));
 
   useEffect(() => {
     if (error?.data?.code === "NOT_FOUND") {
@@ -34,6 +35,30 @@ const CheckoutView = ({ tenantSlug }: CheckoutViewProps) => {
     </div>
   )
 
+  if (error && error.data?.code !== "NOT_FOUND") {
+    return (
+      <div className="flex flex-col items-center justify-center gap-4 p-8 text-center">
+        <p className="text-sm text-muted-foreground">
+          Something went wrong while loading your checkout. Please try again.
+        </p>
+        <Button onClick={() => refetch()} variant="secondary">
+          Retry
+        </Button>
+      </div>
+    );
+  }
+
+  if (error?.data?.code === "NOT_FOUND") {
+    return (
+      <div className="lg:pt-16 pt-4 px-4 lg:px-12">
+        <div className="border border-black border-dashed flex items-center justify-center p-8 flex-col gap-y-4 bg-white w-full rounded-lg">
+          <InboxIcon />
+          <p className="text-base font-medium">Invalid products found, cart is cleared</p>
+        </div>
+      </div>
+    );
+  }
+
   if (data?.totalDocs === 0) return (
     <div className="lg:pt-16 pt-4 px-4 lg:px-12">
       <div className="border border-black border-dashed flex items-center justify-center p-8 flex-col gap-y-4 bg-white w-full rounded-lg">
@@ -42,6 +67,7 @@ const CheckoutView = ({ tenantSlug }: CheckoutViewProps) => {
       </div>
     </div>
   )
+  
   return (
     <div className="lg:pt-16 pt-4 px-4 lg:px-12">
       <div className="grid grid-cols-1 lg:grid-cols-7 gap-4 lg:gap-16">

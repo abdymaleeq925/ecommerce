@@ -48,6 +48,7 @@ const CheckoutItem = ({ isLast, imageUrl, name, productUrl,tenantUrl, tenantName
           className="underline font-medium cursor-pointer" 
           onClick={onRemove} 
           type="button"
+          aria-label={`Remove ${name} from cart`}
         >
           Remove
         </button>

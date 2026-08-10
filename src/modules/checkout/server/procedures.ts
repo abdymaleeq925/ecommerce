@@ -8,7 +8,8 @@ export const checkoutRouter = createTRPCRouter({
   getProducts: baseProcedure
     .input(
       z.object({
-        ids: z.array(z.string())
+        ids: z.array(z.string()),
+        tenantSlug: z.string(),
       }),
     )
     .query(async ({ ctx, input }) => {
@@ -21,12 +22,26 @@ export const checkoutRouter = createTRPCRouter({
         where: {
           id: {
             in: input.ids
-          }
+          },
+          ["tenant.slug"]: {
+            equals: input.tenantSlug,
+          },
         }
       });
 
       if(data.totalDocs !== input.ids.length) {
         throw new TRPCError({ code: "NOT_FOUND", message: "Products not found" })
+      }
+
+      const docs = data.docs.map((doc) => ({
+        ...doc,
+        image: doc.image as Media | null,
+        tenant: doc.tenant as Tenant & { image: Media | null },
+      }));
+
+      const hasForeignTenant = docs.some((doc) => doc.tenant?.slug !== input.tenantSlug);
+      if (hasForeignTenant) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Products not found" });
       }
 
       const totalPrice = data.docs.reduce((acc, product) => {
@@ -36,12 +51,8 @@ export const checkoutRouter = createTRPCRouter({
 
       return {
         ...data,
-        totalPrice: totalPrice,
-        docs: data.docs.map((doc) => ({
-          ...doc,
-          image: doc.image as Media | null,
-          tenant: doc.tenant as Tenant & { image: Media | null }
-        }))
+        totalPrice,
+        docs
       };
     }),
 });
