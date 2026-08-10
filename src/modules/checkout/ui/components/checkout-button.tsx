@@ -22,8 +22,9 @@ export const CheckoutButton = ({ className, hideIfEmpty, tenantSlug }:CheckoutBu
     >
       <Link
         href={`${generateTenantURL(tenantSlug)}/checkout`}
+        aria-label={`Open checkout with ${totalItems} item${totalItems === 1 ? "" : "s"}`}
       >
-        <ShoppingCartIcon/> {totalItems > 0 ? totalItems : ""}
+        <ShoppingCartIcon aria-hidden="true" /> {totalItems > 0 ? totalItems : ""}
       </Link>
     </Button>
   )
