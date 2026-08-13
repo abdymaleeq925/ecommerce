@@ -2,6 +2,18 @@ import type { CollectionConfig } from 'payload';
 
 export const Products: CollectionConfig = {
     slug: "products",
+    admin: {
+        useAsTitle: "name"
+    },
+    access: {
+        read: () => true, // каталог товаров публичный — читать может кто угодно
+        create: ({ req }) => Boolean(req.user), // создавать может только авторизованный пользователь
+        update: ({ req }) => {
+            if(!req.user) return false
+            return true
+        },
+        delete: ({ req }) => Boolean(req.user),
+      },
     fields: [
         {
             name: "name",
