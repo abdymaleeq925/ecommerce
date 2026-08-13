@@ -39,6 +39,17 @@ export const Orders: CollectionConfig = {
 			name: "stripeCheckoutSessionId",
 			type: "text",
 			required: true
+		},
+		{
+			name: "fulfillmentKey",
+			type: "text",
+			required: true,
+			unique: true,
+			index: true,
+			admin: {
+				readOnly: true,
+				description: "Composed from checkout session ID + line item ID, used to prevent duplicate order creation on webhook retries",
+			},
 		}
 	],
 };

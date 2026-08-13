@@ -21,6 +21,25 @@ export const Media: CollectionConfig = {
       type: 'text',
       required: true,
     },
+    {
+      name: 'createdBy',
+      type: 'relationship',
+      relationTo: 'users',
+      required: true,
+      admin: {
+        hidden: true,
+      },
+    },
   ],
+  hooks: {
+    beforeChange: [
+      ({ req, data, operation }) => {
+        if (operation === 'create') {
+          data.createdBy = req.user?.id;
+        }
+        return data;
+      },
+    ],
+  },
   upload: true,
 }

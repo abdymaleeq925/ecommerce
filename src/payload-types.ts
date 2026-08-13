@@ -194,6 +194,7 @@ export interface Tenant {
 export interface Media {
   id: string;
   alt: string;
+  createdBy: string | User;
   updatedAt: string;
   createdAt: string;
   url?: string | null;
@@ -264,6 +265,10 @@ export interface Order {
   user: string | User;
   product: string | Product;
   stripeCheckoutSessionId: string;
+  /**
+   * Composed from checkout session ID + line item ID, used to prevent duplicate order creation on webhook retries
+   */
+  fulfillmentKey: string;
   updatedAt: string;
   createdAt: string;
 }
@@ -397,6 +402,7 @@ export interface UsersSelect<T extends boolean = true> {
  */
 export interface MediaSelect<T extends boolean = true> {
   alt?: T;
+  createdBy?: T;
   updatedAt?: T;
   createdAt?: T;
   url?: T;
@@ -469,6 +475,7 @@ export interface OrdersSelect<T extends boolean = true> {
   user?: T;
   product?: T;
   stripeCheckoutSessionId?: T;
+  fulfillmentKey?: T;
   updatedAt?: T;
   createdAt?: T;
 }

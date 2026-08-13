@@ -1,6 +1,5 @@
-import type { AccessArgs } from 'payload';
-import type { User } from '@/payload-types';
+import type { PayloadRequest } from 'payload';
 
-export const isSuperAdmin = ({ req }: AccessArgs<User>): boolean => {
+export const isSuperAdmin = ({ req }: { req: PayloadRequest }): boolean => {
   return Boolean(req.user?.roles?.includes('super-admin'));
 };

@@ -1,6 +1,6 @@
 import z from "zod";
 import { TRPCError } from "@trpc/server";
-import type Stripe from "stripe";
+import Stripe from "stripe";
 
 import {
   baseProcedure,
@@ -9,7 +9,9 @@ import {
 } from "@/trpc/init";
 import { Media, Tenant } from "@/payload-types";
 import { CheckoutMetadata, ProductMetadata } from "../types";
-import { stripe } from "@/lib/stripe";
+import { getStripeClient } from "@/lib/stripe";
+
+const stripe = getStripeClient();
 
 export const checkoutRouter = createTRPCRouter({
   purchase: protectedProcedure
@@ -23,6 +25,7 @@ export const checkoutRouter = createTRPCRouter({
       const products = await ctx.db.find({
         collection: "products",
         depth: 2,
+        limit: input.productIds.length,
         where: {
           and: [
             {
@@ -60,13 +63,18 @@ export const checkoutRouter = createTRPCRouter({
       if (!tenant)
         throw new TRPCError({ code: "NOT_FOUND", message: "Tenant not found" });
 
-      // TODO: Throw error if stripe details not submitted
+      if(!tenant.stripeAccountId) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Tenant not allowed to sell products"
+        })
+      }
 
       const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] =
         products.docs.map((product) => ({
           quantity: 1,
           price_data: {
-            unit_amount: product.price * 100, // Stripe handles prices in cents
+            unit_amount: Math.round(product.price * 100), // Stripe handles prices in cents
             currency: "usd",
             product_data: {
               name: product.name,
@@ -79,7 +87,7 @@ export const checkoutRouter = createTRPCRouter({
             },
           },
         }));
-      const checkout = await stripe.checkout.sessions.create({
+        const checkout = await stripe.checkout.sessions.create({
         customer_email: ctx.session.user.email,
         success_url: `${process.env.NEXT_PUBLIC_APP_URL}/tenants/${input.tenantSlug}/checkout?success=true&session_id={CHECKOUT_SESSION_ID}`,
         cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/tenants/${input.tenantSlug}/checkout?cancel=true`,
@@ -111,10 +119,17 @@ export const checkoutRouter = createTRPCRouter({
       let session: Stripe.Checkout.Session;
       try {
         session = await stripe.checkout.sessions.retrieve(input.sessionId);
-      } catch {
+      } catch(error) {
+        if (
+          error instanceof Stripe.errors.StripeInvalidRequestError &&
+          error.code === "resource_missing"
+        ) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Checkout session not found" });
+        }
+        console.error("Stripe session retrieval failed:", error);
         throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Checkout session not found",
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Unable to verify payment right now, please try again",
         });
       }
       const metadata = session.metadata as CheckoutMetadata | null;

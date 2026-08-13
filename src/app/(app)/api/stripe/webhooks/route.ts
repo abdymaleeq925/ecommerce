@@ -3,10 +3,10 @@ import { getPayload } from "payload";
 import config from "@payload-config";
 import { NextResponse } from "next/server";
 
-import { stripe } from "@/lib/stripe";
-import { ExpandedLineItem } from "@/modules/checkout/types";
+import { getStripeClient } from "@/lib/stripe";
 
 export async function POST(req: Request) {
+  const stripe = getStripeClient();
   let event: Stripe.Event;
 
   try {
@@ -63,7 +63,28 @@ export async function POST(req: Request) {
               console.log(`Skipping line item without product metadata.id: ${item.id}`);
               continue;
             }
+            const fulfillmentKey = `${data.id}:${item.id}`;
+            try {
+              await payload.create({
+                collection: "orders",
+                data: {
+                  stripeCheckoutSessionId: data.id,
+                  user: user.id,
+                  product: product.metadata.id,
+                  name: product.name,
+                  fulfillmentKey,
+                },
+              });
+            } catch (error) {
+              const isDuplicateKeyError =
+              error && typeof error === "object" && "code" in error && error.code === 11000;
 
+              if (!isDuplicateKeyError) {
+                throw error;
+              }
+
+              console.log(`Order already fulfilled for ${fulfillmentKey}, skipping`);
+            }
             await payload.create({
               collection: "orders",
               data: {
@@ -71,6 +92,7 @@ export async function POST(req: Request) {
                 user: user.id,
                 product: product.metadata.id,
                 name: product.name,
+                fulfillmentKey
               },
             });
           }

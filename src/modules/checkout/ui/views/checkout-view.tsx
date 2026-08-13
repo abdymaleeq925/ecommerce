@@ -51,26 +51,12 @@ const CheckoutView = ({ tenantSlug }: CheckoutViewProps) => {
       router.push("/products");
     },
     onError: (error) => {
-      // оплата не подтвердилась сервером — корзину НЕ трогаем,
-      // просто сообщаем пользователю и убираем "грязные" параметры из URL
       setStates({ success: false, cancel: false, session_id: null });
       toast.error(error.message || "Could not verify your payment. Please contact support if you were charged.");
     }
   }));
 
-
   useEffect(() => {
-    if (states.success) {
-      setStates({ success: false, cancel: false });
-      clearCart();
-      // TODO: Invalidate library
-      router.push("/products")
-    }
-  }, [states.success, clearCart, router])
-
-  useEffect(() => {
-    // раньше здесь просто доверяли states.success из URL и сразу чистили корзину —
-    // теперь success служит лишь триггером для реальной серверной проверки session_id
     if (states.success && states.session_id && !verify.isPending) {
       verify.mutate({ sessionId: states.session_id });
     }

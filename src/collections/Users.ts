@@ -10,12 +10,12 @@ const defaultTenantArrayField = tenantsArrayField({
    arrayFieldAccess: {
     read: () => true,
     create: () => true,
-    update: () => true,
+    update: isSuperAdmin,
    },
    tenantFieldAccess: {
     read: () => true,
     create: () => true,
-    update: () => true,
+    update: isSuperAdmin,
    }
 })
 
@@ -52,7 +52,10 @@ export const Users: CollectionConfig = {
       type: "select",
       defaultValue: ["user"],
       hasMany: true,
-      options: ["super-admin", "user"]
+      options: ["super-admin", "user"],
+      access: {
+        update: isSuperAdmin
+      }
     },
     {
       ...defaultTenantArrayField,
