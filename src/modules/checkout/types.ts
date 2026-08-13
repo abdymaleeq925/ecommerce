@@ -4,7 +4,7 @@ export type ProductMetadata = {
 	stripeAccountId: string,
 	id: string,
 	name: string,
-	price: number	
+	price: string
 }
 
 export type CheckoutMetadata = {

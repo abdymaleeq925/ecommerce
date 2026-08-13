@@ -1,3 +1,4 @@
+import { isSuperAdmin } from '@/isSuperAdmin';
 import type { CollectionConfig } from 'payload'
 
 export const Media: CollectionConfig = {
@@ -5,8 +6,14 @@ export const Media: CollectionConfig = {
   access: {
     read: () => true,
     create: ({ req }) => Boolean(req.user),
-    update: ({ req }) => Boolean(req.user),
-    delete: ({ req }) => Boolean(req.user)
+    update: ({ req }) => {
+      if (isSuperAdmin({ req })) return true;
+      return req.user ? { createdBy: { equals: req.user.id } } : false;
+    },
+    delete: ({ req }) => {
+      if (isSuperAdmin({ req })) return true;
+      return req.user ? { createdBy: { equals: req.user.id } } : false;
+    },
   },
   fields: [
     {

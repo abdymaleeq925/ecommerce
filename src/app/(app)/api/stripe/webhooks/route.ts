@@ -23,14 +23,14 @@ export async function POST(req: Request) {
       console.log(error);
     }
     console.log(`Error message: ${errorMessage}`);
-    return NextResponse.json({
-      message: `Webhook Error: ${errorMessage}`,
-      status: 400,
-    });
+    return NextResponse.json(
+      { message: `Webhook Error: ${errorMessage}` },
+      { status: 400 },
+    );
   }
   console.log("Success:", event.id);
 
-  const permittedEvents: string[] = ["checkout.session.completed"];
+  const permittedEvents: string[] = ["checkout.session.completed", "checkout.session.async_payment_succeeded", "checkout.session.async_payment_failed",];
 
   const payload = await getPayload({ config });
 
@@ -39,38 +39,50 @@ export async function POST(req: Request) {
     try {
       switch (event.type) {
         case "checkout.session.completed":
+        case "checkout.session.async_payment_succeeded": {
           data = event.data.object as Stripe.Checkout.Session;
+
           if (!data.metadata?.userId) throw new Error("User ID is required");
+
           const user = await payload.findByID({
             collection: "users",
             id: data.metadata.userId,
           });
           if (!user) throw new Error("User not found");
-          const expandedSession = await stripe.checkout.sessions.retrieve(
-            data.id,
-            {
-              expand: ["line_items.data.price.product"],
-            },
-          );
-          if (
-            !expandedSession.line_items?.data ||
-            !expandedSession.line_items.data.length
-          )
-            throw new Error("No line items found");
-          const lineItems = expandedSession.line_items
-            .data as ExpandedLineItem[];
-          for (const item of lineItems) {
+
+          const session = await stripe.checkout.sessions.retrieve(data.id);
+          if (session.payment_status !== "paid") {
+            break;
+          }
+
+          for await (const item of stripe.checkout.sessions.listLineItems(data.id, {
+            expand: ["data.price.product"],
+          })) {
+            const product = item.price?.product as Stripe.Product | undefined;
+            if (!product?.metadata?.id) {
+              console.log(`Skipping line item without product metadata.id: ${item.id}`);
+              continue;
+            }
+
             await payload.create({
               collection: "orders",
               data: {
                 stripeCheckoutSessionId: data.id,
                 user: user.id,
-                product: item.price.product.metadata.id,
-                name: item.price.product.name,
+                product: product.metadata.id,
+                name: product.name,
               },
             });
           }
           break;
+        }
+
+        case "checkout.session.async_payment_failed": {
+          data = event.data.object as Stripe.Checkout.Session;
+          console.log(`Async payment failed for session: ${data.id}`);
+          break;
+        }
+
         default:
           throw new Error(`Unhandled event: ${event.type}`);
       }
