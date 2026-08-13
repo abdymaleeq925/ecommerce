@@ -2,14 +2,16 @@
 import { useEffect } from "react";
 import { toast } from "sonner";
 import { useTRPC } from "@/trpc/client"
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { InboxIcon, LoaderIcon } from "lucide-react";
 
 import { generateTenantURL } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 import { useCart } from "../../hooks/use-cart";
 import CheckoutItem from "../components/checkout-item";
 import CheckoutSidebar from "../components/checkout-sidebar";
-import { Button } from "@/components/ui/button";
+import { useCheckoutStates } from "../../hooks/use-checkout-states";
+import { useRouter } from "next/navigation";
 
 interface CheckoutViewProps {
   tenantSlug: string
@@ -17,15 +19,49 @@ interface CheckoutViewProps {
 
 const CheckoutView = ({ tenantSlug }: CheckoutViewProps) => {
   const trpc = useTRPC();
+  const router = useRouter();
+  const [states, setStates] = useCheckoutStates();
   const { productIds, clearCart, removeProduct } = useCart(tenantSlug);
   const { data, error, isLoading, refetch } = useQuery(trpc.checkout.getProducts.queryOptions({ ids: productIds, tenantSlug }));
 
-  useEffect(() => {
-    if (error?.data?.code === "NOT_FOUND") {
-      clearCart();
-      toast.warning("Invalid products found, cart is cleared");
+  const purchase = useMutation(trpc.checkout.purchase.mutationOptions({
+    onMutate: () => { setStates({ success: false, cancel: false }) },
+    onSuccess: (data) => {
+      if (!data.url) {
+        toast.error("Something went wrong, please try again");
+        return;
+      }
+      // eslint-disable-next-line react-hooks/immutability
+      window.location.href = data.url;
+    },
+    onError: (error) => { 
+      if (error.data?.code === "UNAUTHORIZED") {
+        // TODO: Modify when subdomains enabled
+        router.push("/sign-in"); 
+      } 
+      toast.error(error.message) 
     }
-  }, [error, clearCart])
+  }));
+
+  const verify = useMutation(trpc.checkout.verify.mutationOptions({
+    onSuccess: () => {
+      clearCart();
+      setStates({ success: false, cancel: false, session_id: null });
+      // TODO: Invalidate library
+      router.push("/products");
+    },
+    onError: (error) => {
+      setStates({ success: false, cancel: false, session_id: null });
+      toast.error(error.message || "Could not verify your payment. Please contact support if you were charged.");
+    }
+  }));
+
+  useEffect(() => {
+    if (states.success && states.session_id && !verify.isPending) {
+      verify.mutate({ sessionId: states.session_id });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [states.success, states.session_id])
 
   if (isLoading) return (
     <div className="lg:pt-16 pt-4 px-4 lg:px-12">
@@ -67,7 +103,7 @@ const CheckoutView = ({ tenantSlug }: CheckoutViewProps) => {
       </div>
     </div>
   )
-  
+
   return (
     <div className="lg:pt-16 pt-4 px-4 lg:px-12">
       <div className="grid grid-cols-1 lg:grid-cols-7 gap-4 lg:gap-16">
@@ -93,9 +129,9 @@ const CheckoutView = ({ tenantSlug }: CheckoutViewProps) => {
         <div className="lg:col-span-3">
           <CheckoutSidebar
             total={data?.totalPrice || 0}
-            onCheckout={() => { }}
-            isCanceled={true}
-            isPending={false}
+            onPurchase={() => purchase.mutate({ tenantSlug, productIds })}
+            isCanceled={states.cancel}
+            disabled={purchase.isPending}
           />
         </div>
       </div>
