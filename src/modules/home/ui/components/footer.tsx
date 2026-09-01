@@ -1,9 +1,14 @@
+"use client";
+
+import { LogoutButton } from "@/components/logout-button";
+
 export const Footer = () => {
   return (
     <footer className="flex border-t justify-between font-medium p-6">
       <div className="flex items-center gap-2">
         <p>axisroad, Inc.</p>
       </div>
+      <LogoutButton />
     </footer>
-  )
-}
+  );
+};

@@ -39,7 +39,7 @@ export default buildConfig({
   sharp,
   plugins: [ multiTenantPlugin<Config>({
     collections: {
-      products: {}
+      products: { useTenantAccess: false }
     },
     tenantsArrayField: {
       includeDefaultField: false

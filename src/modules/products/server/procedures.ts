@@ -1,34 +1,37 @@
 import z from "zod";
 
+import { headers as getHeaders } from "next/headers";
 import type { Sort, Where } from "payload";
 
-import { baseProcedure, createTRPCRouter } from "@/trpc/init";
-import { Category, Media, Tenant } from "@/payload-types";
-import { sortValues } from "../search-params";
 import { DEFAULT_LIMIT } from "@/constants";
+import { Category, Media, Tenant } from "@/payload-types";
+import { baseProcedure, createTRPCRouter } from "@/trpc/init";
 import { TRPCError } from "@trpc/server";
+import { sortValues } from "../search-params";
 
 const priceFilter = z.preprocess(
-  (value) => value === "" ? null : value == null ? value : Number(value),
-  z.number().finite().nonnegative().nullable().optional()
-)
+  (value) => (value === "" ? null : value == null ? value : Number(value)),
+  z.number().finite().nonnegative().nullable().optional(),
+);
 
 export const productsRouter = createTRPCRouter({
   getOne: baseProcedure
     .input(
       z.object({
         id: z.string(),
-        tenantSlug: z.string()
+        tenantSlug: z.string(),
       }),
     )
-    .query(async ({ctx, input}) => {
+    .query(async ({ ctx, input }) => {
+      const headers = await getHeaders();
+      const session = await ctx.db.auth({ headers });
       let product;
       try {
         product = await ctx.db.findByID({
           collection: "products",
           id: input.id,
-          depth: 2 // 2 is default, it loads the "product.image", "product.tenant" and "product.tenant.image"
-        })
+          depth: 2,
+        });
       } catch (error) {
         throw new TRPCError({
           code: "NOT_FOUND",
@@ -36,21 +39,39 @@ export const productsRouter = createTRPCRouter({
         });
       }
 
-    const productTenant = product.tenant as Tenant & { image: Media | null };
-    const productTenantSlug = typeof product.tenant === "string" ? null : productTenant?.slug;
+      let isPurchased = false;
+      if (session.user) {
+        const ordersData = await ctx.db.find({
+          collection: "orders",
+          pagination: false,
+          limit: 1,
+          where: {
+            and: [
+              { product: { equals: input.id } },
+              { user: { equals: session.user.id } },
+            ],
+          },
+        });
+        isPurchased = !!ordersData.docs[0];
+      }
 
-    if (productTenantSlug !== input.tenantSlug) {
-      throw new TRPCError({
-        code: "NOT_FOUND",
-        message: "Product not found",
-      });
-    }
+      const productTenant = product.tenant as Tenant & { image: Media | null };
+      const productTenantSlug =
+        typeof product.tenant === "string" ? null : productTenant?.slug;
 
-    return {
-      ...product,
-      image: product.image as Media | null,
-      tenant: productTenant as Tenant & { image: Media | null }
-    }
+      if (productTenantSlug !== input.tenantSlug) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Product not found",
+        });
+      }
+
+      return {
+        ...product,
+        isPurchased,
+        image: product.image as Media | null,
+        tenant: productTenant as Tenant & { image: Media | null },
+      };
     }),
   getMany: baseProcedure
     .input(
@@ -62,18 +83,22 @@ export const productsRouter = createTRPCRouter({
         maxPrice: priceFilter,
         tags: z.array(z.string()).nullable().optional(),
         sort: z.enum(sortValues).nullable().optional(),
-        tenantSlug: z.string().nullable().optional()
+        tenantSlug: z.string().nullable().optional(),
       }),
     )
     .query(async ({ ctx, input }) => {
       const where: Where = {};
       let sort: Sort = "-createdAt";
 
-      if(input.sort === "curated") sort = "name"
-      if(input.sort === "hot_and_new") sort = "-createdAt"
-      if(input.sort === "old") sort = "createdAt"
+      if (input.sort === "curated") sort = "name";
+      if (input.sort === "hot_and_new") sort = "-createdAt";
+      if (input.sort === "old") sort = "createdAt";
 
-      if (input.minPrice != null && input.maxPrice != null && input.minPrice > input.maxPrice) {
+      if (
+        input.minPrice != null &&
+        input.maxPrice != null &&
+        input.minPrice > input.maxPrice
+      ) {
         [input.minPrice, input.maxPrice] = [input.maxPrice, input.minPrice];
       }
       if (input.minPrice != null && input.maxPrice != null) {
@@ -91,10 +116,10 @@ export const productsRouter = createTRPCRouter({
         };
       }
 
-      if(input.tenantSlug) {
+      if (input.tenantSlug) {
         where["tenant.slug"] = {
-          equals: input.tenantSlug
-        }
+          equals: input.tenantSlug,
+        };
       }
 
       if (input.category) {
@@ -136,10 +161,10 @@ export const productsRouter = createTRPCRouter({
           in: [parentCategory.slug, ...subcategoriesSlugs],
         };
       }
-      if(input.tags && input.tags.length >0) {
+      if (input.tags && input.tags.length > 0) {
         where["tags.name"] = {
-          in: input.tags
-        }
+          in: input.tags,
+        };
       }
       const data = await ctx.db.find({
         collection: "products",
@@ -155,8 +180,8 @@ export const productsRouter = createTRPCRouter({
         docs: data.docs.map((doc) => ({
           ...doc,
           image: doc.image as Media | null,
-          tenant: doc.tenant as Tenant & { image: Media | null }
-        }))
+          tenant: doc.tenant as Tenant & { image: Media | null },
+        })),
       };
     }),
 });
