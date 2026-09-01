@@ -31,7 +31,7 @@ export function LogoutButton() {
       disabled={logout.isPending}
       className="hover:bg-pink-400 hover:text-black"
     >
-      {logout.isPending ? "Loggin out" : "Sign Out"}
+      {logout.isPending ? "Logging out" : "Sign Out"}
     </Button>
   );
 }
