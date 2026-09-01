@@ -1,30 +1,43 @@
-"use client"
+"use client";
 
-import { LinkIcon, StarIcon } from "lucide-react";
-import { Fragment } from "react/jsx-runtime";
-import dynamic from "next/dynamic";
-import Image from "next/image"
-import Link from "next/link";
 import { useSuspenseQuery } from "@tanstack/react-query";
+import { LinkIcon, StarIcon } from "lucide-react";
+import dynamic from "next/dynamic";
+import Image from "next/image";
+import Link from "next/link";
+import { Fragment } from "react/jsx-runtime";
 
-import { useTRPC } from "@/trpc/client"
 import { StarRating } from "@/components/star-rating";
 import { Button } from "@/components/ui/button";
-import { formatCurrency, generateTenantURL } from "@/lib/utils";
 import { Progress } from "@/components/ui/progress";
+import { formatCurrency, generateTenantURL } from "@/lib/utils";
+import { useTRPC } from "@/trpc/client";
 
-const CartButton = dynamic(() => 
-  import("../components/cart-button").then((mod) => mod.CartButton),
-  { ssr: false, loading: () => <Button disabled className="flex-1 bg-pink-400">Add to cart</Button> });
+const CartButton = dynamic(
+  () => import("../components/cart-button").then((mod) => mod.CartButton),
+  {
+    ssr: false,
+    loading: () => (
+      <Button disabled className="flex-1 bg-pink-400">
+        Add to cart
+      </Button>
+    ),
+  },
+);
 
 interface ProductViewProps {
-  productId: string,
-  tenantSlug: string
+  productId: string;
+  tenantSlug: string;
 }
 
 export const ProductView = ({ productId, tenantSlug }: ProductViewProps) => {
   const trpc = useTRPC();
-  const { data } = useSuspenseQuery(trpc.products.getOne.queryOptions({ id: productId, tenantSlug: tenantSlug }));
+  const { data } = useSuspenseQuery(
+    trpc.products.getOne.queryOptions({
+      id: productId,
+      tenantSlug: tenantSlug,
+    }),
+  );
   return (
     <div className="px-4 lg:px-12 py-10">
       <div className="border rounded-sm bg-white overflow-hidden">
@@ -50,7 +63,10 @@ export const ProductView = ({ productId, tenantSlug }: ProductViewProps) => {
                 </div>
               </div>
               <div className="px-6 py-4 flex items-center justify-center lg:border-r">
-                <Link href={generateTenantURL(tenantSlug)} className="flex items-center gap-2">
+                <Link
+                  href={generateTenantURL(tenantSlug)}
+                  className="flex items-center gap-2"
+                >
                   {data.tenant.image?.url && (
                     <Image
                       src={data.tenant.image.url}
@@ -60,7 +76,9 @@ export const ProductView = ({ productId, tenantSlug }: ProductViewProps) => {
                       className="rounded-full border shrink-0 size-[20px]"
                     />
                   )}
-                  <p className="text-base underline font-medium">{data.tenant.name}</p>
+                  <p className="text-base underline font-medium">
+                    {data.tenant.name}
+                  </p>
                 </Link>
               </div>
               <div className="hidden lg:flex px-6 py-4 items-center justify-center">
@@ -79,7 +97,9 @@ export const ProductView = ({ productId, tenantSlug }: ProductViewProps) => {
               {data.description ? (
                 <p>{data.description}</p>
               ) : (
-                <p className="font-medium text-muted-foreground italic">No description provided</p>
+                <p className="font-medium text-muted-foreground italic">
+                  No description provided
+                </p>
               )}
             </div>
           </div>
@@ -90,6 +110,7 @@ export const ProductView = ({ productId, tenantSlug }: ProductViewProps) => {
                   <CartButton
                     tenantSlug={tenantSlug}
                     productId={productId}
+                    isPurchased={data.isPurchased}
                   />
                   <Button
                     variant="elevated"
@@ -97,18 +118,20 @@ export const ProductView = ({ productId, tenantSlug }: ProductViewProps) => {
                     onClick={() => {}}
                     disabled={false}
                   >
-                    <LinkIcon/>
+                    <LinkIcon />
                   </Button>
                 </div>
                 <p className="text-center font-medium">
-                  {data.refundPolicy === "no-refunds" ? "No refunds" : `${data.refundPolicy} money back guarantee`}
+                  {data.refundPolicy === "no-refunds"
+                    ? "No refunds"
+                    : `${data.refundPolicy} money back guarantee`}
                 </p>
               </div>
               <div className="p-6">
                 <div className="flex items-center justify-between">
                   <h3 className="text-xl font-medium">Ratings</h3>
                   <div className="flex items-center gap-x-1 font-medium">
-                    <StarIcon className="size-4 fill-black"/>
+                    <StarIcon className="size-4 fill-black" />
                     <p>({3})</p>
                     <p className="text-base">{5} ratings</p>
                   </div>
@@ -116,14 +139,11 @@ export const ProductView = ({ productId, tenantSlug }: ProductViewProps) => {
                 <div className="grid grid-cols-[auto_1fr_auto] gap-3 mt-4">
                   {[5, 4, 3, 2, 1].map((stars) => (
                     <Fragment key={stars}>
-                      <div className="font-medium">{stars} {stars === 1 ? "star" : "stars"}</div>
-                      <Progress
-                        value={67}
-                        className="h-[1lh]"
-                      />
                       <div className="font-medium">
-                        {67}%
+                        {stars} {stars === 1 ? "star" : "stars"}
                       </div>
+                      <Progress value={67} className="h-[1lh]" />
+                      <div className="font-medium">{67}%</div>
                     </Fragment>
                   ))}
                 </div>
@@ -133,5 +153,5 @@ export const ProductView = ({ productId, tenantSlug }: ProductViewProps) => {
         </div>
       </div>
     </div>
-  )
-}
+  );
+};

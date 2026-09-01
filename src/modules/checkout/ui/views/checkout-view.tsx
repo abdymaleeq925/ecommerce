@@ -1,20 +1,20 @@
-"use client"
-import { useEffect } from "react";
-import { toast } from "sonner";
-import { useTRPC } from "@/trpc/client"
+"use client";
+import { useTRPC } from "@/trpc/client";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { InboxIcon, LoaderIcon } from "lucide-react";
+import { useEffect } from "react";
+import { toast } from "sonner";
 
-import { generateTenantURL } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { generateTenantURL } from "@/lib/utils";
+import { useRouter } from "next/navigation";
 import { useCart } from "../../hooks/use-cart";
+import { useCheckoutStates } from "../../hooks/use-checkout-states";
 import CheckoutItem from "../components/checkout-item";
 import CheckoutSidebar from "../components/checkout-sidebar";
-import { useCheckoutStates } from "../../hooks/use-checkout-states";
-import { useRouter } from "next/navigation";
 
 interface CheckoutViewProps {
-  tenantSlug: string
+  tenantSlug: string;
 }
 
 const CheckoutView = ({ tenantSlug }: CheckoutViewProps) => {
@@ -22,54 +22,67 @@ const CheckoutView = ({ tenantSlug }: CheckoutViewProps) => {
   const router = useRouter();
   const [states, setStates] = useCheckoutStates();
   const { productIds, clearCart, removeProduct } = useCart(tenantSlug);
-  const { data, error, isLoading, refetch } = useQuery(trpc.checkout.getProducts.queryOptions({ ids: productIds, tenantSlug }));
+  const { data, error, isLoading, refetch } = useQuery(
+    trpc.checkout.getProducts.queryOptions({ ids: productIds, tenantSlug }),
+  );
 
-  const purchase = useMutation(trpc.checkout.purchase.mutationOptions({
-    onMutate: () => { setStates({ success: false, cancel: false }) },
-    onSuccess: (data) => {
-      if (!data.url) {
-        toast.error("Something went wrong, please try again");
-        return;
-      }
-      // eslint-disable-next-line react-hooks/immutability
-      window.location.href = data.url;
-    },
-    onError: (error) => { 
-      if (error.data?.code === "UNAUTHORIZED") {
-        // TODO: Modify when subdomains enabled
-        router.push("/sign-in"); 
-      } 
-      toast.error(error.message) 
-    }
-  }));
+  const purchase = useMutation(
+    trpc.checkout.purchase.mutationOptions({
+      onMutate: () => {
+        setStates({ success: false, cancel: false });
+      },
+      onSuccess: (data) => {
+        if (!data.url) {
+          toast.error("Something went wrong, please try again");
+          return;
+        }
+        // eslint-disable-next-line react-hooks/immutability
+        window.location.href = data.url;
+      },
+      onError: (error) => {
+        if (error.data?.code === "UNAUTHORIZED") {
+          // TODO: Modify when subdomains enabled
+          router.push("/sign-in");
+        }
+        toast.error(error.message);
+      },
+    }),
+  );
 
-  const verify = useMutation(trpc.checkout.verify.mutationOptions({
-    onSuccess: () => {
-      clearCart();
-      setStates({ success: false, cancel: false, session_id: null });
-      // TODO: Invalidate library
-      router.push("/products");
-    },
-    onError: (error) => {
-      setStates({ success: false, cancel: false, session_id: null });
-      toast.error(error.message || "Could not verify your payment. Please contact support if you were charged.");
-    }
-  }));
+  const verify = useMutation(
+    trpc.checkout.verify.mutationOptions({
+      onSuccess: () => {
+        clearCart();
+        // setStates({ success: false, cancel: false, session_id: null });
+        toast.success("Payment successful, your purchase is now available");
+        // TODO: Invalidate library
+        router.push("/");
+      },
+      onError: (error) => {
+        setStates({ success: false, cancel: false, session_id: null });
+        toast.error(
+          error.message ||
+            "Could not verify your payment. Please contact support if you were charged.",
+        );
+      },
+    }),
+  );
 
   useEffect(() => {
     if (states.success && states.session_id && !verify.isPending) {
       verify.mutate({ sessionId: states.session_id });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [states.success, states.session_id])
+  }, [states.success, states.session_id]);
 
-  if (isLoading) return (
-    <div className="lg:pt-16 pt-4 px-4 lg:px-12">
-      <div className="border border-black border-dashed flex items-center justify-center p-8 flex-col gap-y-4 bg-white w-full rounded-lg">
-        <LoaderIcon className="text-muted-foreground animate-spin" />
+  if (isLoading)
+    return (
+      <div className="lg:pt-16 pt-4 px-4 lg:px-12">
+        <div className="border border-black border-dashed flex items-center justify-center p-8 flex-col gap-y-4 bg-white w-full rounded-lg">
+          <LoaderIcon className="text-muted-foreground animate-spin" />
+        </div>
       </div>
-    </div>
-  )
+    );
 
   if (error && error.data?.code !== "NOT_FOUND") {
     return (
@@ -89,41 +102,42 @@ const CheckoutView = ({ tenantSlug }: CheckoutViewProps) => {
       <div className="lg:pt-16 pt-4 px-4 lg:px-12">
         <div className="border border-black border-dashed flex items-center justify-center p-8 flex-col gap-y-4 bg-white w-full rounded-lg">
           <InboxIcon />
-          <p className="text-base font-medium">Invalid products found, cart is cleared</p>
+          <p className="text-base font-medium">
+            Invalid products found, cart is cleared
+          </p>
         </div>
       </div>
     );
   }
 
-  if (data?.totalDocs === 0) return (
-    <div className="lg:pt-16 pt-4 px-4 lg:px-12">
-      <div className="border border-black border-dashed flex items-center justify-center p-8 flex-col gap-y-4 bg-white w-full rounded-lg">
-        <InboxIcon />
-        <p className="text-base font-medium">No products found</p>
+  if (data?.totalDocs === 0)
+    return (
+      <div className="lg:pt-16 pt-4 px-4 lg:px-12">
+        <div className="border border-black border-dashed flex items-center justify-center p-8 flex-col gap-y-4 bg-white w-full rounded-lg">
+          <InboxIcon />
+          <p className="text-base font-medium">No products found</p>
+        </div>
       </div>
-    </div>
-  )
+    );
 
   return (
     <div className="lg:pt-16 pt-4 px-4 lg:px-12">
       <div className="grid grid-cols-1 lg:grid-cols-7 gap-4 lg:gap-16">
         <div className="lg:col-span-4">
           <div className="border rounded-md overflow-hidden bg-white">
-            {
-              data?.docs.map((product, index) => (
-                <CheckoutItem
-                  key={product.id}
-                  isLast={index === data.docs.length - 1}
-                  imageUrl={product.image?.url}
-                  name={product.name}
-                  productUrl={`${generateTenantURL(product.tenant.slug)}/products/${product.id}`}
-                  tenantUrl={generateTenantURL(product.tenant.slug)}
-                  tenantName={product.tenant.name}
-                  price={product.price}
-                  onRemove={() => removeProduct(product.id)}
-                />
-              ))
-            }
+            {data?.docs.map((product, index) => (
+              <CheckoutItem
+                key={product.id}
+                isLast={index === data.docs.length - 1}
+                imageUrl={product.image?.url}
+                name={product.name}
+                productUrl={`${generateTenantURL(product.tenant.slug)}/products/${product.id}`}
+                tenantUrl={generateTenantURL(product.tenant.slug)}
+                tenantName={product.tenant.name}
+                price={product.price}
+                onRemove={() => removeProduct(product.id)}
+              />
+            ))}
           </div>
         </div>
         <div className="lg:col-span-3">
@@ -136,7 +150,7 @@ const CheckoutView = ({ tenantSlug }: CheckoutViewProps) => {
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default CheckoutView
+export default CheckoutView;

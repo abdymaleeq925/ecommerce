@@ -1,7 +1,7 @@
-import type { Stripe } from "stripe";
-import { getPayload } from "payload";
 import config from "@payload-config";
 import { NextResponse } from "next/server";
+import { getPayload } from "payload";
+import type { Stripe } from "stripe";
 
 import { getStripeClient } from "@/lib/stripe";
 
@@ -30,7 +30,11 @@ export async function POST(req: Request) {
   }
   console.log("Success:", event.id);
 
-  const permittedEvents: string[] = ["checkout.session.completed", "checkout.session.async_payment_succeeded", "checkout.session.async_payment_failed",];
+  const permittedEvents: string[] = [
+    "checkout.session.completed",
+    "checkout.session.async_payment_succeeded",
+    "checkout.session.async_payment_failed",
+  ];
 
   const payload = await getPayload({ config });
 
@@ -55,12 +59,17 @@ export async function POST(req: Request) {
             break;
           }
 
-          for await (const item of stripe.checkout.sessions.listLineItems(data.id, {
-            expand: ["data.price.product"],
-          })) {
+          for await (const item of stripe.checkout.sessions.listLineItems(
+            data.id,
+            {
+              expand: ["data.price.product"],
+            },
+          )) {
             const product = item.price?.product as Stripe.Product | undefined;
             if (!product?.metadata?.id) {
-              console.log(`Skipping line item without product metadata.id: ${item.id}`);
+              console.log(
+                `Skipping line item without product metadata.id: ${item.id}`,
+              );
               continue;
             }
             const fulfillmentKey = `${data.id}:${item.id}`;
@@ -77,24 +86,19 @@ export async function POST(req: Request) {
               });
             } catch (error) {
               const isDuplicateKeyError =
-              error && typeof error === "object" && "code" in error && error.code === 11000;
+                error &&
+                typeof error === "object" &&
+                "code" in error &&
+                error.code === 11000;
 
               if (!isDuplicateKeyError) {
                 throw error;
               }
 
-              console.log(`Order already fulfilled for ${fulfillmentKey}, skipping`);
+              console.log(
+                `Order already fulfilled for ${fulfillmentKey}, skipping`,
+              );
             }
-            await payload.create({
-              collection: "orders",
-              data: {
-                stripeCheckoutSessionId: data.id,
-                user: user.id,
-                product: product.metadata.id,
-                name: product.name,
-                fulfillmentKey
-              },
-            });
           }
           break;
         }
