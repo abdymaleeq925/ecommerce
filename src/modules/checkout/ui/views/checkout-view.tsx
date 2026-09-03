@@ -1,6 +1,6 @@
 "use client";
 import { useTRPC } from "@/trpc/client";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { InboxIcon, LoaderIcon } from "lucide-react";
 import { useEffect } from "react";
 import { toast } from "sonner";
@@ -22,6 +22,7 @@ const CheckoutView = ({ tenantSlug }: CheckoutViewProps) => {
   const router = useRouter();
   const [states, setStates] = useCheckoutStates();
   const { productIds, clearCart, removeProduct } = useCart(tenantSlug);
+  const queryClient = useQueryClient();
   const { data, error, isLoading, refetch } = useQuery(
     trpc.checkout.getProducts.queryOptions({ ids: productIds, tenantSlug }),
   );
@@ -53,10 +54,12 @@ const CheckoutView = ({ tenantSlug }: CheckoutViewProps) => {
     trpc.checkout.verify.mutationOptions({
       onSuccess: () => {
         clearCart();
-        // setStates({ success: false, cancel: false, session_id: null });
+        setStates({ success: false, cancel: false, session_id: null });
         toast.success("Payment successful, your purchase is now available");
-        // TODO: Invalidate library
-        router.push("/");
+        queryClient.invalidateQueries(
+          trpc.library.getMany.infiniteQueryFilter(),
+        );
+        router.push("/library");
       },
       onError: (error) => {
         setStates({ success: false, cancel: false, session_id: null });
