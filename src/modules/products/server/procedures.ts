@@ -228,8 +228,12 @@ export const productsRouter = createTRPCRouter({
             ...doc,
             reviewCount: reviewsData.totalDocs,
             reviewRating:
-              reviewsData.docs.reduce((acc, review) => acc + review.rating, 0) /
-              reviewsData.totalDocs,
+              reviewsData.totalDocs > 0
+                ? reviewsData.docs.reduce(
+                    (acc, review) => acc + review.rating,
+                    0,
+                  ) / reviewsData.totalDocs
+                : 0,
           };
         }),
       );
