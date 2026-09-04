@@ -1,17 +1,29 @@
-import type { CollectionConfig } from 'payload'
+import type { CollectionConfig } from "payload";
 
-import { isSuperAdmin } from '@/isSuperAdmin'
+import { isSuperAdmin } from "@/isSuperAdmin";
 
 export const Tenants: CollectionConfig = {
-  slug: 'tenants',
+  slug: "tenants",
   access: {
     read: () => true,
     create: isSuperAdmin,
-    update: isSuperAdmin,
+    update: ({ req }) => {
+      if (isSuperAdmin({ req })) return true;
+      if (!req.user) return false;
+      const tenantsIds = (req.user.tenants ?? [])
+        .map((t) => (typeof t.tenant === "string" ? t.tenant : t.tenant?.id))
+        .filter(Boolean);
+      if (tenantsIds.length === 0) return false;
+      return {
+        id: {
+          in: tenantsIds,
+        },
+      };
+    },
     delete: isSuperAdmin,
   },
   admin: {
-    useAsTitle: 'slug',
+    useAsTitle: "slug",
   },
   fields: [
     {
@@ -20,39 +32,41 @@ export const Tenants: CollectionConfig = {
       type: "text",
       label: "Store Name",
       admin: {
-        description: "This is the name of the store (e.g. John's Store)"
-      }
+        description: "This is the name of the store (e.g. John's Store)",
+      },
     },
     {
-        name: "slug",
-        type: "text",
-        index: true,
-        required: true,
-        unique: true,
-        admin: {
-            description: "This is the subdomain for the store (e.g. [slug].axisroad.com)"
-        }
+      name: "slug",
+      type: "text",
+      index: true,
+      required: true,
+      unique: true,
+      admin: {
+        description:
+          "This is the subdomain for the store (e.g. [slug].axisroad.com)",
+      },
     },
     {
-        name: "image",
-        type: "upload",
-        relationTo: "media"
+      name: "image",
+      type: "upload",
+      relationTo: "media",
     },
     {
-        name: "stripeAccountId",
-        type: "text",
-        required: true,
-        admin: {
-            readOnly: true
-        }
+      name: "stripeAccountId",
+      type: "text",
+      required: true,
+      admin: {
+        readOnly: true,
+      },
     },
     {
-        name: "stripeDetailsSubmitted",
-        type: "checkbox",
-        admin: {
-            readOnly: true,
-            description: "You cannot create products until you submit your Stripe details"
-        }
-    }
+      name: "stripeDetailsSubmitted",
+      type: "checkbox",
+      admin: {
+        readOnly: true,
+        description:
+          "You cannot create products until you submit your Stripe details",
+      },
+    },
   ],
-}
+};
