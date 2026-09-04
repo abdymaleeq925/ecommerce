@@ -1,8 +1,8 @@
-import { isSuperAdmin } from '@/isSuperAdmin';
-import type { CollectionConfig } from 'payload'
+import { isSuperAdmin } from "@/isSuperAdmin";
+import type { CollectionConfig } from "payload";
 
 export const Media: CollectionConfig = {
-  slug: 'media',
+  slug: "media",
   access: {
     read: () => true,
     create: ({ req }) => Boolean(req.user),
@@ -17,16 +17,17 @@ export const Media: CollectionConfig = {
   },
   fields: [
     {
-      name: 'alt',
-      type: 'text',
+      name: "alt",
+      type: "text",
       required: true,
     },
     {
-      name: 'createdBy',
-      type: 'relationship',
-      relationTo: 'users',
+      name: "createdBy",
+      type: "relationship",
+      relationTo: "users",
       required: true,
       admin: {
+        readOnly: true,
         hidden: true,
       },
     },
@@ -34,7 +35,7 @@ export const Media: CollectionConfig = {
   hooks: {
     beforeChange: [
       ({ req, data, operation }) => {
-        if (operation === 'create') {
+        if (operation === "create" && req.user) {
           data.createdBy = req.user?.id;
         }
         return data;
@@ -42,4 +43,4 @@ export const Media: CollectionConfig = {
     ],
   },
   upload: true,
-}
+};

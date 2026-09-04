@@ -1,26 +1,26 @@
-import type { CollectionConfig } from 'payload'
-import { tenantsArrayField } from "@payloadcms/plugin-multi-tenant/fields"
+import type { CollectionConfig } from "payload";
+import { tenantsArrayField } from "@payloadcms/plugin-multi-tenant/fields";
 
-import { isSuperAdmin } from '@/isSuperAdmin';
+import { isSuperAdmin } from "@/isSuperAdmin";
 
 const defaultTenantArrayField = tenantsArrayField({
-   tenantsArrayFieldName: "tenants",
-   tenantsCollectionSlug: "tenants",
-   tenantsArrayTenantFieldName: "tenant",
-   arrayFieldAccess: {
+  tenantsArrayFieldName: "tenants",
+  tenantsCollectionSlug: "tenants",
+  tenantsArrayTenantFieldName: "tenant",
+  arrayFieldAccess: {
     read: () => true,
     create: () => true,
     update: isSuperAdmin,
-   },
-   tenantFieldAccess: {
+  },
+  tenantFieldAccess: {
     read: () => true,
     create: () => true,
     update: isSuperAdmin,
-   }
-})
+  },
+});
 
 export const Users: CollectionConfig = {
-  slug: 'users',
+  slug: "users",
   access: {
     read: ({ req }) => {
       if (isSuperAdmin({ req })) return true;
@@ -34,7 +34,7 @@ export const Users: CollectionConfig = {
     delete: isSuperAdmin,
   },
   admin: {
-    useAsTitle: 'email',
+    useAsTitle: "email",
   },
   auth: true,
   fields: [
@@ -42,11 +42,11 @@ export const Users: CollectionConfig = {
       name: "username",
       required: true,
       unique: true,
-      type: "text"
+      type: "text",
     },
     {
       admin: {
-        position: "sidebar"
+        position: "sidebar",
       },
       name: "roles",
       type: "select",
@@ -54,15 +54,15 @@ export const Users: CollectionConfig = {
       hasMany: true,
       options: ["super-admin", "user"],
       access: {
-        update: isSuperAdmin
-      }
+        update: isSuperAdmin,
+      },
     },
     {
       ...defaultTenantArrayField,
       admin: {
         ...(defaultTenantArrayField?.admin || {}),
-        position: "sidebar"
-      }
-    }
+        position: "sidebar",
+      },
+    },
   ],
-}
+};
