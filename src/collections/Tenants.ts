@@ -1,25 +1,11 @@
 import type { CollectionConfig } from "payload";
 
-import { isSuperAdmin } from "@/isSuperAdmin";
+import { isSuperAdmin } from "@/lib/access";
 
 export const Tenants: CollectionConfig = {
   slug: "tenants",
   access: {
-    read: () => true,
     create: isSuperAdmin,
-    update: ({ req }) => {
-      if (isSuperAdmin({ req })) return true;
-      if (!req.user) return false;
-      const tenantsIds = (req.user.tenants ?? [])
-        .map((t) => (typeof t.tenant === "string" ? t.tenant : t.tenant?.id))
-        .filter(Boolean);
-      if (tenantsIds.length === 0) return false;
-      return {
-        id: {
-          in: tenantsIds,
-        },
-      };
-    },
     delete: isSuperAdmin,
   },
   admin: {
@@ -41,6 +27,9 @@ export const Tenants: CollectionConfig = {
       index: true,
       required: true,
       unique: true,
+      access: {
+        update: isSuperAdmin,
+      },
       admin: {
         description:
           "This is the subdomain for the store (e.g. [slug].axisroad.com)",
@@ -55,13 +44,19 @@ export const Tenants: CollectionConfig = {
       name: "stripeAccountId",
       type: "text",
       required: true,
+      access: {
+        update: isSuperAdmin,
+      },
       admin: {
-        readOnly: true,
+        description: "Stripe Account ID associated with your shop.",
       },
     },
     {
       name: "stripeDetailsSubmitted",
       type: "checkbox",
+      access: {
+        update: isSuperAdmin,
+      },
       admin: {
         readOnly: true,
         description:

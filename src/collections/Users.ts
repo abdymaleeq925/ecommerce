@@ -1,7 +1,7 @@
-import type { CollectionConfig } from "payload";
 import { tenantsArrayField } from "@payloadcms/plugin-multi-tenant/fields";
+import type { CollectionConfig } from "payload";
 
-import { isSuperAdmin } from "@/isSuperAdmin";
+import { isSuperAdmin } from "@/lib/access";
 
 const defaultTenantArrayField = tenantsArrayField({
   tenantsArrayFieldName: "tenants",
@@ -9,12 +9,12 @@ const defaultTenantArrayField = tenantsArrayField({
   tenantsArrayTenantFieldName: "tenant",
   arrayFieldAccess: {
     read: () => true,
-    create: () => true,
+    create: isSuperAdmin,
     update: isSuperAdmin,
   },
   tenantFieldAccess: {
     read: () => true,
-    create: () => true,
+    create: isSuperAdmin,
     update: isSuperAdmin,
   },
 });
@@ -26,15 +26,22 @@ export const Users: CollectionConfig = {
       if (isSuperAdmin({ req })) return true;
       return req.user ? { id: { equals: req.user.id } } : false;
     },
-    create: () => true,
+    create: ({ req }) => {
+      if (isSuperAdmin({ req })) return true;
+      return req.user ? { id: { equals: req.user.id } } : false;
+    },
+    delete: ({ req }) => {
+      if (isSuperAdmin({ req })) return true;
+      return req.user ? { id: { equals: req.user.id } } : false;
+    },
     update: ({ req }) => {
       if (isSuperAdmin({ req })) return true;
       return req.user ? { id: { equals: req.user.id } } : false;
     },
-    delete: isSuperAdmin,
   },
   admin: {
     useAsTitle: "email",
+    hidden: ({ user }) => !user?.roles?.includes("super-admin"),
   },
   auth: true,
   fields: [

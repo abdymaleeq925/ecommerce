@@ -1,15 +1,15 @@
-import z from "zod";
 import { TRPCError } from "@trpc/server";
 import Stripe from "stripe";
+import z from "zod";
 
+import { getStripeClient } from "@/lib/stripe";
+import { Media, Tenant } from "@/payload-types";
 import {
   baseProcedure,
   createTRPCRouter,
   protectedProcedure,
 } from "@/trpc/init";
-import { Media, Tenant } from "@/payload-types";
 import { CheckoutMetadata, ProductMetadata } from "../types";
-import { getStripeClient } from "@/lib/stripe";
 
 const stripe = getStripeClient();
 
@@ -63,11 +63,11 @@ export const checkoutRouter = createTRPCRouter({
       if (!tenant)
         throw new TRPCError({ code: "NOT_FOUND", message: "Tenant not found" });
 
-      if(!tenant.stripeAccountId) {
+      if (!tenant.stripeAccountId) {
         throw new TRPCError({
           code: "BAD_REQUEST",
-          message: "Tenant not allowed to sell products"
-        })
+          message: "Tenant not allowed to sell products",
+        });
       }
 
       const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] =
@@ -87,7 +87,7 @@ export const checkoutRouter = createTRPCRouter({
             },
           },
         }));
-        const checkout = await stripe.checkout.sessions.create({
+      const checkout = await stripe.checkout.sessions.create({
         customer_email: ctx.session.user.email,
         success_url: `${process.env.NEXT_PUBLIC_APP_URL}/tenants/${input.tenantSlug}/checkout?success=true&session_id={CHECKOUT_SESSION_ID}`,
         cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/tenants/${input.tenantSlug}/checkout?cancel=true`,
@@ -119,12 +119,15 @@ export const checkoutRouter = createTRPCRouter({
       let session: Stripe.Checkout.Session;
       try {
         session = await stripe.checkout.sessions.retrieve(input.sessionId);
-      } catch(error) {
+      } catch (error) {
         if (
           error instanceof Stripe.errors.StripeInvalidRequestError &&
           error.code === "resource_missing"
         ) {
-          throw new TRPCError({ code: "NOT_FOUND", message: "Checkout session not found" });
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Checkout session not found",
+          });
         }
         console.error("Stripe session retrieval failed:", error);
         throw new TRPCError({
