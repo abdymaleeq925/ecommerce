@@ -1,11 +1,14 @@
 import type { CollectionConfig } from "payload";
 
-import { isSuperAdmin } from "@/isSuperAdmin";
+import { isSuperAdmin } from "@/lib/access";
 
 export const Reviews: CollectionConfig = {
   slug: "reviews",
   access: {
-    read: () => true,
+    read: ({ req }) => {
+      if (isSuperAdmin({ req })) return true;
+      return req.user ? { user: { equals: req.user.id } } : false;
+    },
     create: isSuperAdmin,
     update: isSuperAdmin,
     delete: isSuperAdmin,
